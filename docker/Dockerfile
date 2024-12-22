@@ -27,6 +27,13 @@ RUN apt-get -qq -y update && \
         libreadline-dev \
         uuid-dev \
         libffi-dev \
+        libtool \
+        automake \
+        autoconf \
+        automake \ 
+        ca-certificates \   
+        libleptonica-dev \
+        pkg-config \
         tk-dev \
         wget \
         curl \
@@ -36,16 +43,29 @@ RUN apt-get -qq -y update && \
         bash-completion \
         tree \
         vim \
-        software-properties-common && \
-    mv /usr/bin/lsb_release /usr/bin/lsb_release.bak && \
-    apt-get -y autoclean && \
-    apt-get -y autoremove && \
-    rm -rf /var/lib/apt/lists/*
-
+        tesseract-ocr tesseract-ocr-rus \
+        software-properties-common 
+#Раскоментировать на релизе >>
+        #&& \
+#    mv /usr/bin/lsb_release /usr/bin/lsb_release.bak && \
+#    apt-get -y autoclean && \
+#    apt-get -y autoremove && \
+#    rm -rf /var/lib/apt/lists/*
+#Раскоментировать на релизе <<
+#Install Python
 COPY install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION_TAG} ${LINK_PYTHON_TO_PYTHON3} && \
     rm -r install_python.sh Python-${PYTHON_VERSION_TAG}
 
+#install Tesseract
+#COPY install_tesseract.sh install_tesseract.sh
+#RUN bash install_tesseract.sh && \
+#    rm install_tesseract.sh
+
+#Install leptonica 1.74+
+#COPY install_leptonica.sh install_leptonica.sh
+#RUN bash install_leptonica.sh && \
+#    rm install_leptonica.sh    
 # Enable tab completion by uncommenting it from /etc/bash.bashrc
 # The relevant lines are those below the phrase "enable bash completion in interactive shells"
 RUN export SED_RANGE="$(($(sed -n '\|enable bash completion in interactive shells|=' /etc/bash.bashrc)+1)),$(($(sed -n '\|enable bash completion in interactive shells|=' /etc/bash.bashrc)+7))" && \
@@ -78,19 +98,6 @@ RUN touch $HOME/.sudo_as_admin_successful
 
 
 CMD [ "/bin/bash" ]
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #### Install dependencies

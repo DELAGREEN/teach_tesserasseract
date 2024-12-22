@@ -1,6 +1,6 @@
 # Сборка репозитория
 - Первым этапом является добавления чужого репозитория с помощью команды  
-    - добавляем tesseract-ocr *git submodule add https://github.com/tesseract-ocr/tesseract.git*
+    - добавляем tesstrain *git submodule add https://github.com/tesseract-ocr/tesstrain.git*
 
  # Сборка Docker контейнера
  - команда для сборки *sudo docker build -t "tesseract_teatch:0.1 ."*
