@@ -14,7 +14,7 @@ def convert_pdf_to_tiff(path):
     gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
 
     # Используем Tesseract для получения данных о тексте
-    data = pytesseract.image_to_data(img_rgb, lang="rus", output_type=Output.DICT)
+    data = pytesseract.image_to_data(img_rgb, lang="наименование нашей модели", output_type=Output.DICT)
 
     # Собираем координаты всех боксов текста
     boxes = []

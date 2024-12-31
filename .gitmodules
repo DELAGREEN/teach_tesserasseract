@@ -1,6 +1,6 @@
 [submodule "tesstrain"]
-	path = tesstrain
+	path = sub_modules/tesstrain
 	url = https://github.com/tesseract-ocr/tesstrain.git
 [submodule "sub_modules/langdata"]
 	path = sub_modules/langdata
-	url = https://github.com/tesseract-ocr/langdata
+	url = https://github.com/tesseract-ocr/langdata.git
