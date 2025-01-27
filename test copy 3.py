@@ -132,7 +132,7 @@ for line in lines:
     draw_boxes_on_image(f'{path}_1.tif', boxes, boxed_image_path)
 
     line_count += 1
-    if line_count >= 10:  # Ограничение количества генерируемых изображений для теста
+    if line_count >= 20:  # Ограничение количества генерируемых изображений для теста
         break
 
 print(f"Сгенерировано {line_count} изображений и box-файлов.")
