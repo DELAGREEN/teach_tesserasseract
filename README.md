@@ -12,3 +12,10 @@
 # Клонирование репозитория в контейнер 
 - что бы клонировать репозиторий с сылками на чужой репозиторий необходимо выполнить команду 
 *git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git*
+
+
+
+
+
+# Чел на Youtube 
+https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia

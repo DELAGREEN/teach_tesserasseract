@@ -7,14 +7,14 @@ import datetime
 
 start = datetime.datetime.now()
 
-def convert_pdf_to_tiff(path):
+def convert_pdf_to_text(path):
     pages = convert_from_path(path, dpi=300)
     img = np.array(pages[0])
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
 
     # Используем Tesseract для получения данных о тексте
-    data = pytesseract.image_to_data(img_rgb, lang="наименование нашей модели", output_type=Output.DICT)
+    data = pytesseract.image_to_data(img_rgb, lang="rus", output_type=Output.DICT)
 
     # Собираем координаты всех боксов текста
     boxes = []
@@ -55,7 +55,7 @@ def convert_pdf_to_tiff(path):
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Распознаем текст
-    text = pytesseract.image_to_string(thresh, lang="OKBM_AUTOCAD")
+    text = pytesseract.image_to_string(thresh, lang="rus")
 
     print("Распознанный текст:")
     print(text)
@@ -125,8 +125,8 @@ def convert_pdf_to_tiff(path):
     cv2.waitKey(0)
 
 
-path = '/home/astraadmin/Desktops/Desktop1/rep/drawing_text_recognition/Мусор/pdf/РНАТ.656519.010СБ_184370887.dwg.pdf'
-convert_pdf_to_tiff(path)
+path = '/home/nzxt/rep/teach_tesserasseract/pdf/РНАТ.723351.069_Сегмент.dwg.pdf'
+convert_pdf_to_text(path)
 
 end = datetime.datetime.now()
 print(end-start)
