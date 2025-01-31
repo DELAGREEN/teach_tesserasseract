@@ -1,6 +1,7 @@
 asttokens==3.0.0
 colorama==0.4.6
 executing==2.2.0
+fonttools==4.55.8
 icecream==2.1.4
 numpy==2.2.2
 opencv-python==4.11.0.86
