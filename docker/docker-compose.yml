@@ -3,22 +3,22 @@ version: "3.8"
 services:
   ocr_app:
     build:
-      # Контекст сборки – корень проекта (root)
-      context: ..                         
+    # Контекст сборки – корень проекта (root)
+      context: ..
       dockerfile: docker/Dockerfile
     container_name: ocr_app_dwg_to_text
     user: root
     # (опционально) устанавливаем рабочую директорию внутри контейнера
-    working_dir: /app                     
+    working_dir: /app
     volumes:
       # Файл конфигурации, доступный только для чтения
       - type: bind
         source: ../config.ini
         target: /app/config.ini
         read_only: true
-      # Каталог для мониторинга, доступный для чтения и записи
+      # Каталог для мониторинга, с использованием переменной окружения
       - type: bind
         source: ../pdf
-        target: /home/nzxt/rep/teach_tesserasseract/pdf
+        target: ${MONITORED_DIR}
         consistency: consistent
     restart: unless-stopped

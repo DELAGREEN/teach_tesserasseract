@@ -10,9 +10,14 @@ import re
 from pdf2image import convert_from_path
 from watchdog.observers import Observer  # Если потребуется, можно заменить на PollingObserver
 from watchdog.events import FileSystemEventHandler
+from dotenv import load_dotenv
 import configparser
 import logging
 import sys
+
+# ----------------------- Загрузка переменных окружения -----------------------
+# Загружаем переменные из файла .env (файл .env должен находиться в той же директории, что и запуск приложения)
+load_dotenv()
 
 # ----------------------- Настройка логирования -----------------------
 logging.basicConfig(
@@ -22,12 +27,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ----------------------- Загрузка конфигурации -----------------------
+# ----------------------- Загрузка конфигурации с подстановкой переменных -----------------------
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.ini')
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
+# Читаем файл конфигурации как текст и выполняем замену переменных (например, ${MONITORED_DIR})
+with open(CONFIG_PATH, encoding="utf-8") as f:
+    config_content = os.path.expandvars(f.read())
+    
+# Инициализируем парсер с расширенной интерполяцией (если нужны другие возможности интерполяции)
+config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+config.read_string(config_content)
 
-# Пути
+# Получаем пути из секции [Paths]
 MONITORED_DIR = config.get('Paths', 'monitored_dir')
 RESULTS_DIR   = config.get('Paths', 'results_dir')
 TRESH_DIR     = config.get('Paths', 'tresh_dir')
