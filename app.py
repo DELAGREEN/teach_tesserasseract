@@ -8,9 +8,19 @@ from pytesseract import Output
 import datetime
 import re
 from pdf2image import convert_from_path
-from watchdog.observers import Observer
+from watchdog.observers import Observer  # Если потребуется, можно заменить на PollingObserver
 from watchdog.events import FileSystemEventHandler
 import configparser
+import logging
+import sys
+
+# ----------------------- Настройка логирования -----------------------
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # ----------------------- Загрузка конфигурации -----------------------
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.ini')
@@ -64,12 +74,12 @@ def process_pdf(file_path):
       - Извлекает область для распознавания, на ней обводит найденные строки,
         распознаёт текст и сохраняет результаты.
     """
-    print(f"Начало обработки файла: {file_path}")
+    logger.info(f"Начало обработки файла: {file_path}")
 
     # Конвертация первой страницы PDF в изображение (используем DPI из конфигурации)
     pages = convert_from_path(file_path, dpi=DPI)
     if not pages:
-        print(f"Не удалось конвертировать PDF: {file_path}")
+        logger.error(f"Не удалось конвертировать PDF: {file_path}")
         return
     img = np.array(pages[0])
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -97,7 +107,7 @@ def process_pdf(file_path):
 
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
-        print(f"Не найдены контуры в файле {file_path}.")
+        logger.error(f"Не найдены контуры в файле {file_path}.")
         return
     max_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(max_contour)
@@ -152,10 +162,14 @@ def process_pdf(file_path):
     with open(text_filename, "w", encoding="utf-8") as f:
         f.write(recognized_text)
 
-    print(f"Обработан файл: {file_path}")
+    logger.info(f"Обработан файл: {file_path}")
     if SAVE_IMAGES:
-        print(f"Сохранены изображения:\n  Полное с обводкой: {full_outlined_filename}\n  Область с обводкой: {outlined_area_filename}\n  Оригинальная область: {cropped_area_filename}")
-    print(f"Сохранен текстовый файл: {text_filename}")
+        logger.info(
+            f"Сохранены изображения:\n  Полное с обводкой: {full_outlined_filename}\n"
+            f"  Область с обводкой: {outlined_area_filename}\n"
+            f"  Оригинальная область: {cropped_area_filename}"
+        )
+    logger.info(f"Сохранен текстовый файл: {text_filename}")
 
 def process_existing_files():
     """
@@ -174,16 +188,16 @@ def process_existing_files():
                 process_pdf(full_path)
                 dest_path = os.path.join(PROCESSED_DIR, file)
                 shutil.move(full_path, dest_path)
-                print(f"Файл {file} обработан и перемещён в папку processed")
+                logger.info(f"Файл {file} обработан и перемещён в папку processed")
             except Exception as e:
-                print(f"Ошибка при обработке {full_path}: {e}")
+                logger.error(f"Ошибка при обработке {full_path}: {e}")
         else:
             try:
                 dest_path = os.path.join(TRESH_DIR, file)
                 shutil.move(full_path, dest_path)
-                print(f"Файл {file} перемещён в папку tresh")
+                logger.info(f"Файл {file} перемещён в папку tresh")
             except Exception as e:
-                print(f"Ошибка при перемещении {file} в папку tresh: {e}")
+                logger.error(f"Ошибка при перемещении {file} в папку tresh: {e}")
 
 # ----------------------- WATCHDOG -----------------------
 class PDFEventHandler(FileSystemEventHandler):
@@ -205,16 +219,16 @@ class PDFEventHandler(FileSystemEventHandler):
                 process_pdf(file_path)
                 dest_path = os.path.join(PROCESSED_DIR, file_name)
                 shutil.move(file_path, dest_path)
-                print(f"Файл {file_name} обработан и перемещён в папку processed")
+                logger.info(f"Файл {file_name} обработан и перемещён в папку processed")
             except Exception as e:
-                print(f"Ошибка при обработке {file_path}: {e}")
+                logger.error(f"Ошибка при обработке {file_path}: {e}")
         else:
             try:
                 dest_path = os.path.join(TRESH_DIR, file_name)
                 shutil.move(file_path, dest_path)
-                print(f"Файл {file_name} перемещён в папку tresh")
+                logger.info(f"Файл {file_name} перемещён в папку tresh")
             except Exception as e:
-                print(f"Ошибка при перемещении {file_name} в папку tresh: {e}")
+                logger.error(f"Ошибка при перемещении {file_name} в папку tresh: {e}")
 
 if __name__ == "__main__":
     # Сначала обрабатываем все уже лежащие в папке файлы
@@ -225,10 +239,11 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(event_handler, MONITORED_DIR, recursive=False)
     observer.start()
-    print(f"Мониторинг папки {MONITORED_DIR} запущен...")
+    logger.info(f"Мониторинг папки {MONITORED_DIR} запущен...")
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
+        logger.info("Остановка мониторинга по KeyboardInterrupt...")
     observer.join()
