@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  ocr_app:
+    build:
+      context: ..        # Контекст сборки – корень проекта (root)
+      dockerfile: docker/Dockerfile
+    container_name: ocr_app_dwg_to_text
+    volumes:
+      - ../config.ini:/app/config.ini:ro
+      - ../monitored_dir:/home/nzxt/rep/teach_tesserasseract/pdf:rw
+    restart: unless-stopped

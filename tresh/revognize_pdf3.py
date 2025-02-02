@@ -81,7 +81,7 @@ def convert_pdf_to_text(path):
     cv2.imshow('Largest Text Area with Boxes', largest_text_area)
     cv2.waitKey(0)
 
-path = '/home/user/rep/teach_tesserasseract/test_images/6.+Чертеж+РНАТ.741341.057+Планка.pdf'
+path = '/home/nzxt/rep/teach_tesserasseract/pdf/РНАТ.305155.008СБ_182425323.dwg.pdf'
 convert_pdf_to_text(path)
 
 end = datetime.datetime.now()
