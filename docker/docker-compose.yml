@@ -7,9 +7,13 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     container_name: ocr_app_dwg_to_text
-    user: root
+    user: "${UID}:${GID}"
     # (опционально) устанавливаем рабочую директорию внутри контейнера
     working_dir: /app
+    environment:
+      - MONITORED_DIR=${MONITORED_DIR}
+      - UID=${UID}
+      - GID=${GID}
     volumes:
       # Файл конфигурации, доступный только для чтения
       - type: bind

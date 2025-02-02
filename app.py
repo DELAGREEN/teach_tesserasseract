@@ -29,15 +29,15 @@ logger = logging.getLogger(__name__)
 
 # ----------------------- Загрузка конфигурации с подстановкой переменных -----------------------
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.ini')
-# Читаем файл конфигурации как текст и выполняем замену переменных (например, ${MONITORED_DIR})
+# Читаем содержимое config.ini как текст и выполняем замену переменных (например, ${MONITORED_DIR})
 with open(CONFIG_PATH, encoding="utf-8") as f:
     config_content = os.path.expandvars(f.read())
-    
-# Инициализируем парсер с расширенной интерполяцией (если нужны другие возможности интерполяции)
-config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+
+# Отключаем встроенную интерполяцию, поскольку замена уже выполнена
+config = configparser.ConfigParser(interpolation=None)
 config.read_string(config_content)
 
-# Получаем пути из секции [Paths]
+# Получаем пути (значения подставлены функцией os.path.expandvars)
 MONITORED_DIR = config.get('Paths', 'monitored_dir')
 RESULTS_DIR   = config.get('Paths', 'results_dir')
 TRESH_DIR     = config.get('Paths', 'tresh_dir')
