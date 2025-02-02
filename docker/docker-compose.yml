@@ -10,6 +10,8 @@ services:
     user: "${UID}:${GID}"
     # (опционально) устанавливаем рабочую директорию внутри контейнера
     working_dir: /app
+    env_file:
+      - ../.env
     environment:
       - MONITORED_DIR=${MONITORED_DIR}
       - UID=${UID}
