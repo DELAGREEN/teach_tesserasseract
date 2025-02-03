@@ -1,19 +1,18 @@
 # Клонирование репозитория 
 - что бы клонировать репозиторий с сылками на чужой репозиторий необходимо выполнить команду 
-*git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git*
+*`git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git`*
 
 # Сборка репозитория
 - Первым этапом является добавления сторонних репозиториев в свой проект с помощью команды  
-    - добавляем tesstrain *git submodule add https://github.com/tesseract-ocr/tesstrain.git*
+    - добавляем tesstrain *`git submodule add https://github.com/tesseract-ocr/tesstrain.git`*
 
  # Сборка Docker контейнера
 **ВНИМАНИЕ**
 <br>
 **Бывает так что проект собирается не с первого раза, нужно просто запустить сборку повторно.**
-- Что бы собрать проект нужно запустить docker-compose с файлом docker-compose.yml проект сам соберется
+- Что бы собрать проект нужно запустить `docker-compose` с файлом `docker-compose.yml` проект сам соберется
 - В файле .env нужно указать путь монтирования к хост машине
-<br>
-**Если хотите взаимодействовать с файлами в хостмашине от обычного пользователя, раскоментируйте строки `UID` и `GID`в .env файле**
+- **Если хотите взаимодействовать с файлами в хостмашине от обычного пользователя, раскоментируйте строки `UID` и `GID`в .env файле**
 
 # Чел на Youtube 
 https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
