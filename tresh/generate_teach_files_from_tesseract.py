@@ -10,7 +10,7 @@ def text_to_image(text, font_path, font_size, image_width, image_height, backgro
     font = ImageFont.truetype(font_path, font_size)
     d.text((10, 10), text, fill=text_color, font=font)
     icecream.ic(f'{path_to_save_image}.tif')
-    img.save(f'{path_to_save_image}_1.tif')
+    img.save(f'{path_to_save_image}.tif')
 
 def create_box_file(text, path_to_save_box):
     # Создание файла .box на основе текста
@@ -29,7 +29,7 @@ with open(training_text_file, 'r') as input_file:
     for line in input_file.readlines():
         lines.append(line.strip())
 
-output_directory = r'/home/user/rep/teach_tesserasseract/sub_modules/tesstrain/data/okbm_dwg_gostw2_304-ground-truth'
+output_directory = r'/home/user/rep/teach_tesserasseract/sub_modules/tesstrain/data/rus-ground-truth'
 
 if not os.path.exists(output_directory):
     os.mkdir(output_directory)
@@ -38,21 +38,22 @@ random.shuffle(lines)
 
 line_count = 0
 for line in lines:
-    training_text_file_name = pathlib.Path(training_text_file).stem
-    line_training_text = os.path.join(output_directory, fr'{training_text_file_name}_{line_count}.gt.txt')
+    if line_count < 20000:
+        training_text_file_name = pathlib.Path(training_text_file).stem
+        line_training_text = os.path.join(output_directory, f'{training_text_file_name}_{line_count}.gt.txt')
 
-    # Создание файла .gt
-    with open(line_training_text, 'w') as output_file:
-        output_file.writelines([line])
+        # Создание файла .gt
+        with open(line_training_text, 'w') as output_file:
+            output_file.writelines([line])
 
-    # Создание файла .box
-    box_file_path = os.path.join(output_directory, f'{training_text_file_name}_{line_count}.box')
-    create_box_file(line, box_file_path)
+        # Создание файла .box
+        box_file_path = os.path.join(output_directory, f'{training_text_file_name}_{line_count}.box')
+        create_box_file(line, box_file_path)
 
-    file_base_name = fr'rus_{line_count}'
+        file_base_name = fr'rus_{line_count}'
 
-    path = fr'{output_directory}/{file_base_name}'
+        path = fr'{output_directory}/{file_base_name}'
 
-    text_to_image(line, r'/home/user/rep/teach_tesserasseract/fonts/gost_2.304.ttf', 45, 980, 200, (255, 255, 255), (0, 0, 0), path)
+        text_to_image(line, r'/home/user/rep/teach_tesserasseract/fonts/gost_2.304.ttf', 45, 980, 200, (255, 255, 255), (0, 0, 0), path)
 
-    line_count += 1
+        line_count += 1
