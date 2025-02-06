@@ -1,0 +1,9 @@
+[submodule "sub_modules/langdata_lstm"]
+	path = sub_modules/langdata_lstm
+	url = https://github.com/tesseract-ocr/langdata_lstm.git
+[submodule "sub_modules/tesstrain"]
+	path = sub_modules/tesstrain
+	url = https://github.com/tesseract-ocr/tesstrain.git
+[submodule "sub_modules/tesseract"]
+	path = sub_modules/tesseract
+	url = https://github.com/tesseract-ocr/tesseract.git
