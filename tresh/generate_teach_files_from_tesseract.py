@@ -21,7 +21,7 @@ def create_box_file(text, path_to_save_box):
             # Вы можете изменить это в зависимости от ваших требований.
             box_file.write(f"{char} 0 10 10 50 50\n")  # Примерные координаты
 
-training_text_file = r'/home/nzxt/rep/teach_tesserasseract/tesstrain/langdata/rus/rus.training_text'
+training_text_file = r'/home/user/rep/teach_tesserasseract/sub_modules/langdata_lstm/rus/rus.training_text'
 
 lines = []
 
@@ -29,7 +29,7 @@ with open(training_text_file, 'r') as input_file:
     for line in input_file.readlines():
         lines.append(line.strip())
 
-output_directory = r'/home/nzxt/rep/teach_tesserasseract/test'
+output_directory = r'/home/user/rep/teach_tesserasseract/sub_modules/tesstrain/data/okbm_dwg_gostw2_304-ground-truth'
 
 if not os.path.exists(output_directory):
     os.mkdir(output_directory)
@@ -53,6 +53,6 @@ for line in lines:
 
     path = fr'{output_directory}/{file_base_name}'
 
-    text_to_image(line, r'/home/nzxt/rep/teach_tesserasseract/fonts/gost_2.304_italic.ttf', 45, 980, 200, (255, 255, 255), (0, 0, 0), path)
+    text_to_image(line, r'/home/user/rep/teach_tesserasseract/fonts/gost_2.304.ttf', 45, 980, 200, (255, 255, 255), (0, 0, 0), path)
 
     line_count += 1
