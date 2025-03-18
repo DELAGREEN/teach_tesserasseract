@@ -248,6 +248,8 @@ if __name__ == "__main__":
     event_handler = PDFEventHandler()
     observer = Observer()
     observer.schedule(event_handler, MONITORED_DIR, recursive=False)
+    #Если указать recursive=True, то любые изменения, происходящие не только в указанной директории, 
+    #но и в её подкаталогах, также будут отслеживаться. 
     observer.start()
     logger.info(f"Мониторинг папки {MONITORED_DIR} запущен...")
     try:

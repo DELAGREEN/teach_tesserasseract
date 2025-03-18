@@ -2,3 +2,5 @@ test
 venv
 pdf
 test_*
+sub_modules/langdata
+sub_modules/tesseract
