@@ -15,17 +15,19 @@ import configparser
 import logging
 import sys
 
+#------------------------ Импорт внутренних модулей проекта ------------------------
+from logger import logger
 # ----------------------- Загрузка переменных окружения -----------------------
 # Загружаем переменные из файла .env (файл .env должен находиться в той же директории, что и запуск приложения)
 load_dotenv()
 
 # ----------------------- Настройка логирования -----------------------
-logging.basicConfig(
-    level=logging.INFO,
-    stream=sys.stdout,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+#logging.basicConfig(
+#    level=logging.INFO,
+#    stream=sys.stdout,
+#    format='%(asctime)s - %(levelname)s - %(message)s'
+#)
+#logger = logging.getLogger(__name__)
 
 # ----------------------- Загрузка конфигурации с подстановкой переменных -----------------------
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.ini')
