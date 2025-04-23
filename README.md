@@ -28,3 +28,12 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
 `make unicharset lists proto-model tesseract-langdata training MODEL_NAME=rus MAX_ITERATIONS=100000`
 
 распаковать файлы из папки языка в root-langdata
+
+
+# Переменные окружения 
+    services:
+    app:
+        build: .
+        environment:
+        - LOG_LEVEL=DEBUG
+        - LOG_FILE=/logs/app.log

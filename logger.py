@@ -1,82 +1,52 @@
 import logging
-import functools
+import os
 import inspect
 
-#create a logger
-logger = logging.getLogger(__name__)
+# Получаем уровень логирования из переменной окружения, по умолчанию INFO
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_FILE = os.getenv("LOG_FILE", "test.log")
 
-def _log_config(func):
-    
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        #set up logging configuration
-        logging.basicConfig(
-            level=logging.INFO,
-            filename='test.log',
-            encoding='UTF-8',
-            filemode='a+',
-            format='%(asctime)s %(levelname)s %(message)s'
-        )
-        return func(*args, **kwargs)
-    
-    return wrapper
+# Создаём логгер
+logger = logging.getLogger("custom_logger")
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 
-@_log_config
+# Настраиваем логгирование только один раз
+if not logger.handlers:
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+
+    # Консольный хендлер (stdout → docker logs)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    # Файловый хендлер
+    file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+# Вспомогательная функция для префикса
+def _get_log_prefix():
+    frame = inspect.stack()[2]
+    cls = frame.frame.f_locals.get('self', None)
+    if cls:
+        cls_name = cls.__class__.__name__
+        method_name = frame.function
+        return f"{cls_name}.{method_name}"
+    else:
+        return f"{frame.function} ({frame.filename}:{frame.lineno})"
+
+# Уровни логирования
 def print_debug(message: str):
-    '''log a debud message'''
-    frame = inspect.stack()[2]
-    cls = frame.frame.f_locals.get('self', None)
-    if cls:
-        cls_name = cls.__class__.__name__
-        method_name  = frame.function
-        logger.debug(f'{cls_name}.{method_name} - {message}')
-    else:
-        logger.debug(f'{frame.function} ({frame.filename}:{frame.lineno}) - {message}')
+    logger.debug(f"{_get_log_prefix()} - {message}")
 
-@_log_config
 def print_info(message: str):
-    '''log a info message'''
-    frame = inspect.stack()[2]
-    cls = frame.frame.f_locals.get('self', None)
-    if cls:
-        cls_name = cls.__class__.__name__
-        method_name  = frame.function
-        logger.info(f'{cls_name}.{method_name} - {message}')
-    else:
-        logger.info(f'{frame.function} ({frame.filename}:{frame.lineno}) - {message}')
+    logger.info(f"{_get_log_prefix()} - {message}")
 
-@_log_config
-def print_error(message: str):
-    '''log a debud message'''
-    frame = inspect.stack()[2]
-    cls = frame.frame.f_locals.get('self', None)
-    if cls:
-        cls_name = cls.__class__.__name__
-        method_name  = frame.function
-        logger.error(f'{cls_name}.{method_name} - {message}')
-    else:
-        logger.error(f'{frame.function} ({frame.filename}:{frame.lineno}) - {message}')
-
-@_log_config
-def print_critical(message: str):
-    '''log a debud message'''
-    frame = inspect.stack()[2]
-    cls = frame.frame.f_locals.get('self', None)
-    if cls:
-        cls_name = cls.__class__.__name__
-        method_name  = frame.function
-        logger.critical(f'{cls_name}.{method_name} - {message}')
-    else:
-        logger.critical(f'{frame.function} ({frame.filename}:{frame.lineno}) - {message}')
-
-@_log_config
 def print_warning(message: str):
-    '''log a debud message'''
-    frame = inspect.stack()[2]
-    cls = frame.frame.f_locals.get('self', None)
-    if cls:
-        cls_name = cls.__class__.__name__
-        method_name  = frame.function
-        logger.warning(f'{cls_name}.{method_name} - {message}')
-    else:
-        logger.warning(f'{frame.function} ({frame.filename}:{frame.lineno}) - {message}')
+    logger.warning(f"{_get_log_prefix()} - {message}")
+
+def print_error(message: str):
+    logger.error(f"{_get_log_prefix()} - {message}")
+
+def print_critical(message: str):
+    logger.critical(f"{_get_log_prefix()} - {message}")

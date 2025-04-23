@@ -4,3 +4,5 @@ pdf
 test_*
 sub_modules/langdata
 sub_modules/tesseract
+__pycache__
+*.log
