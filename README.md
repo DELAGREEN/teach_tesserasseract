@@ -2,18 +2,6 @@
 - Что бы клонировать репозиторий с сылками на чужой репозиторий необходимо выполнить команду 
 *`git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git`*
 
-# Сборка репозитория
-- Первым этапом является добавления сторонних репозиториев в свой проект с помощью команды  
-    - добавляем tesstrain *`git submodule add https://github.com/tesseract-ocr/tesstrain.git`*
-
- # Сборка Docker контейнера
-**ВНИМАНИЕ**
-<br>
-**Бывает так что проект собирается не с первого раза, нужно просто запустить сборку повторно.**
-- Что бы собрать проект нужно запустить `docker-compose` с файлом `docker-compose.yml` проект сам соберется
-- В файле .env нужно указать путь монтирования к хост машине
-- **Если хотите взаимодействовать с файлами в хостмашине от обычного пользователя, раскоментируйте строки `UID` и `GID`в .env файле**
-
 # Чел на Youtube 
 https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
 
@@ -42,19 +30,38 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
         - LOG_LEVEL=DEBUG
         - LOG_FILE=/logs/app.log
 
+
+# Сборка репозитория
+- Первым этапом является добавления сторонних репозиториев в свой проект с помощью команды  
+    - добавляем tesstrain *`git submodule add https://github.com/tesseract-ocr/tesstrain.git`*
+
+# Сборка Docker контейнера
+<br> 
+
+**ВНИМАНИЕ**
+<br>
+**Бывает так что проект собирается не с первого раза, нужно просто запустить сборку повторно.**
+- Что бы собрать проект нужно запустить `docker-compose` с файлом `docker-compose.yml` проект сам соберется
+- В файле .env нужно указать путь монтирования к хост машине
+- **Если хотите взаимодействовать с файлами в хостмашине от обычного пользователя, раскоментируйте строки `UID` и `GID`в .env файле.
+
+<br>
+
 # Пересборка
 ## Останавливаем и удаляем все контейнеры
-    sudo docker-compose down --rmi all --volumes --remove-orphans
+    docker-compose down --rmi all --volumes --remove-orphans
 
 ## Удаляем все Docker образы, контейнеры и volumes
-    sudo docker system prune -a -f
-    sudo docker volume prune -f
+    docker system prune -a -f
+<br>
+
+    docker volume prune -f
 
 ## Пересобираем образ с чистого листа
-    sudo docker-compose build --no-cache
+    docker-compose build --no-cache
 
 ## Запускаем
-    sudo docker-compose up -d
+    docker-compose up -d
 
 # Пример как зайти в контейнер под root
-    sudo docker-compose run --rm --user root ocr_app /bin/bash
+    docker-compose run --rm --user root ocr_app /bin/bash
