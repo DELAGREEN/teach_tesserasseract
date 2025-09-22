@@ -13,9 +13,9 @@ services:
     env_file:
       - ../.env
     environment:
-      - MONITORED_DIR=${MONITORED_DIR}
-      - UID=${UID}
-      - GID=${GID}
+      - MONITORED_DIR=${MONITORED_DIR:-/pdf}
+      - UID=${UID:-1000}
+      - GID=${GID:-1000}
     volumes:
       # Файл конфигурации, доступный только для чтения
       - type: bind
