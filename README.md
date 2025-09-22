@@ -19,15 +19,19 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
 
 # Обучение
 
-`cd sub_modules/tesstrain/` 
+`cd sub_modules/tesstrain/`
+
 `TESSDATA_PREFIX=../tesseract/tessdata make training MODEL_NAME=okbm_dwg_gostw2_304 START_MODEL=rus TESSDATA=../tesseract/tessdata MAX_ITERATIONS=10000`
+
 `mkdir langdata`
+
 `cd langdata`
+
 `git clone https://github.com/tesseract-ocr/langdata_lstm.git/`
 
 `make unicharset lists proto-model tesseract-langdata training MODEL_NAME=rus MAX_ITERATIONS=100000`
 
-распаковать файлы из папки языка в root-langdata
+Распаковать файлы из папки языка в root-langdata
 
 
 # Переменные окружения 
@@ -37,3 +41,20 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
         environment:
         - LOG_LEVEL=DEBUG
         - LOG_FILE=/logs/app.log
+
+# Пересборка
+## Останавливаем и удаляем все контейнеры
+    sudo docker-compose down --rmi all --volumes --remove-orphans
+
+## Удаляем все Docker образы, контейнеры и volumes
+    sudo docker system prune -a -f
+    sudo docker volume prune -f
+
+## Пересобираем образ с чистого листа
+    sudo docker-compose build --no-cache
+
+## Запускаем
+    sudo docker-compose up -d
+
+# Пример как зайти в контейнер под root
+    sudo docker-compose run --rm --user root ocr_app /bin/bash
