@@ -1,26 +1,43 @@
 # Клонирование репозитория 
-- Что бы клонировать репозиторий с сылками на чужой репозиторий необходимо выполнить команду 
-*`git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git`*
+Что бы клонировать репозиторий с сылками на чужой репозиторий необходимо выполнить команду 
+
+    git clone --recurse-submodules https://github.com/DELAGREEN/teach_tesserasseract.git
+
+# Сборка репозитория
+Первым этапом является добавления сторонних репозиториев в свой проект с помощью команды  
+
+Добавляем tesstrain:
+
+    git submodule add https://github.com/tesseract-ocr/tesstrain.git
 
 # Чел на Youtube 
-https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
+    https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
 
 # Обучение
 
-`cd sub_modules/tesstrain/`
+    cd sub_modules/tesstrain/
 
-`TESSDATA_PREFIX=../tesseract/tessdata make training MODEL_NAME=okbm_dwg_gostw2_304 START_MODEL=rus TESSDATA=../tesseract/tessdata MAX_ITERATIONS=10000`
+<br>
 
-`mkdir langdata`
+    TESSDATA_PREFIX=../tesseract/tessdata make training MODEL_NAME=okbm_dwg_gostw2_304 START_MODEL=rus TESSDATA=../tesseract/tessdata MAX_ITERATIONS=10000
 
-`cd langdata`
+<br>
 
-`git clone https://github.com/tesseract-ocr/langdata_lstm.git/`
+    mkdir langdata
 
-`make unicharset lists proto-model tesseract-langdata training MODEL_NAME=rus MAX_ITERATIONS=100000`
+<br>
+
+    cd langdata
+
+<br>
+
+    git clone https://github.com/tesseract-ocr/langdata_lstm.git/
+
+<br>
+
+    make unicharset lists proto-model tesseract-langdata training MODEL_NAME=rus MAX_ITERATIONS=100000
 
 Распаковать файлы из папки языка в root-langdata
-
 
 # Переменные окружения 
     services:
@@ -29,11 +46,6 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
         environment:
         - LOG_LEVEL=DEBUG
         - LOG_FILE=/logs/app.log
-
-
-# Сборка репозитория
-- Первым этапом является добавления сторонних репозиториев в свой проект с помощью команды  
-    - добавляем tesstrain *`git submodule add https://github.com/tesseract-ocr/tesstrain.git`*
 
 # Сборка Docker контейнера
 <br> 
@@ -65,3 +77,11 @@ https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
 
 # Пример как зайти в контейнер под root
     docker-compose run --rm --user root ocr_app /bin/bash
+
+
+# Tesseract
+
+### Место нахождение файла .trainedata
+После переобучения закинуть сюда
+
+    /usr/share/tesseract-ocr/5/tessdata
