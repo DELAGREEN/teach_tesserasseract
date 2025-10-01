@@ -14,8 +14,8 @@ services:
       - ../../.env
     environment:
       - MONITORED_DIR=${MONITORED_DIR}
-      - UID=${UID}
-      - GID=${GID}
+      #- UID=${UID}
+      #- GID=${GID}
     volumes:
       # Файл конфигурации, доступный только для чтения
       - type: bind
