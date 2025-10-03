@@ -39,7 +39,7 @@ def detect_text_blocks(image, min_area_ratio=0.005):
             mask[y:y+h, x:x+w] = 255
     
     # Морфологические операции для объединения текстовых областей
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 30))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 30)) #Ширина Высота
     dilated = cv2.dilate(mask, kernel, iterations=3)
     
     # Находим все контуры текстовых блоков
