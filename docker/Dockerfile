@@ -19,6 +19,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+#COPY . .
+COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
+COPY app.py .
+COPY logger.py .
+COPY config.ini .
 
 CMD ["python", "app.py"]

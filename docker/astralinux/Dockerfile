@@ -27,19 +27,20 @@ RUN python3 -m venv venv && \
     venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Создаем файл лога (теперь у appuser есть права на запись)
-RUN touch /app/log.log && chmod 644 /app/log.log
+RUN touch /app/log.log && chmod 666 /app/log.log
 
 # Меняем владельца всей директории /app на appuser
-RUN chown -R appuser:appuser /app
+#RUN chown -R appuser:appuser /app
+RUN chmod -R a+rw /app
 
-# Теперь переключаемся на непривилегированного пользователя
+# Копируем остальные файлы
+COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
+COPY  app.py .
+COPY  logger.py .
+COPY  config.ini .
+
+#Переключаемся на пользователя
 USER appuser
-
-# Копируем остальные файлы с правильными правами
-COPY --chown=appuser:appuser app.py .
-COPY --chown=appuser:appuser logger.py .
-COPY --chown=appuser:appuser config.ini .
-
 # Запускаем приложение
-#CMD ["venv/bin/python", "app.py"]
-CMD ["tail", "-f", "/dev/null"]
+CMD ["venv/bin/python", "app.py"]
+#CMD ["tail", "-f", "/dev/null"]
