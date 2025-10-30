@@ -24,6 +24,8 @@ COPY requirements.txt .
 # Создаем виртуальное окружение и устанавливаем зависимости как ROOT
 RUN python3 -m venv venv && \
     venv/bin/python -m ensurepip --upgrade && \
+    # Сначала обновляем pip
+    venv/bin/python -m pip install --upgrade pip && \
     venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Создаем файл лога (теперь у appuser есть права на запись)
