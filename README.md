@@ -76,7 +76,10 @@
     docker-compose up -d
 
 # Пример как зайти в контейнер под root
-    docker-compose run --rm --user root ocr_app /bin/bash
+    docker-compose run --rm --user root container_name /bin/bash
+<br>
+
+    docker exec -it -u root container_name /bin/bash
 
 
 # Tesseract
