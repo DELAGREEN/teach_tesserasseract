@@ -36,10 +36,10 @@ RUN touch /app/log.log && chmod 666 /app/log.log
 RUN chmod -R a+rw /app
 
 # Копируем остальные файлы
-COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
 COPY  app.py .
 COPY  logger.py .
 COPY  config.ini .
+#COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
 
 #Переключаемся на пользователя
 USER appuser
