@@ -6,7 +6,8 @@ services:
     # Контекст сборки – корень проекта (root)
       context: ../../
       dockerfile: docker/astralinux/Dockerfile
-    #image: delagreenpromo/astralinux_ocr_app:latest
+      #image: delagreenpromo/astralinux_ocr_app:latest
+      #image: astralinux_ocr_app:latest
     container_name: astralinux_ocr_app
     user: "${UID}:${GID}"
     # (опционально) устанавливаем рабочую директорию внутри контейнера
