@@ -13,9 +13,16 @@ RUN apt-get update && \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+# Обновляем системные pip и setuptools с флагом --break-system-packages
+RUN python3 -m pip install --upgrade --force-reinstall --break-system-packages "pip==25.3" "setuptools==80.9.0"
+
+# Удаляем системные пакеты после обновления
+RUN apt-get remove -y python3-pip python3-setuptools python3-wheel || true
+
 # Создаем пользователя
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
+# Базовая папка
 WORKDIR /app
 
 # Копируем requirements.txt ДО переключения пользователя
@@ -43,6 +50,7 @@ COPY  config.ini .
 
 #Переключаемся на пользователя
 USER appuser
+
 # Запускаем приложение
 CMD ["venv/bin/python", "app.py"]
 #CMD ["tail", "-f", "/dev/null"]
