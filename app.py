@@ -1,28 +1,33 @@
+import configparser
+import datetime
 import os
-import time
+import re
 import shutil
+
+# import logging
+import sys
+import time
+
 import cv2
 import numpy as np
 import pytesseract
-from pytesseract import Output
-import datetime
-import re
-from pdf2image import convert_from_path
-from watchdog.observers import Observer  # Если потребуется, можно заменить на PollingObserver
-from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
-import configparser
-#import logging
-import sys
+from pdf2image import convert_from_path
+from pytesseract import Output
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import (
+    Observer,
+)  # Если потребуется, можно заменить на PollingObserver
 
-#------------------------ Импорт внутренних модулей проекта ------------------------
+# ------------------------ Импорт внутренних модулей проекта ------------------------
 from logger import logger
+
 # ----------------------- Загрузка переменных окружения -----------------------
 # Загружаем переменные из файла .env (файл .env должен находиться в той же директории, что и запуск приложения)
 load_dotenv()
 
 # ----------------------- Загрузка конфигурации с подстановкой переменных -----------------------
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.ini')
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.ini")
 # Читаем содержимое config.ini как текст и выполняем замену переменных (например, ${MONITORED_DIR})
 with open(CONFIG_PATH, encoding="utf-8") as f:
     config_content = os.path.expandvars(f.read())
@@ -32,22 +37,23 @@ config = configparser.ConfigParser(interpolation=None)
 config.read_string(config_content)
 
 # Получаем пути (значения подставлены функцией os.path.expandvars)
-MONITORED_DIR = config.get('Paths', 'monitored_dir')
-RESULTS_DIR   = config.get('Paths', 'results_dir')
-TRESH_DIR     = config.get('Paths', 'tresh_dir')
-PROCESSED_DIR = config.get('Paths', 'processed_dir')
+MONITORED_DIR = config.get("Paths", "monitored_dir")
+RESULTS_DIR = config.get("Paths", "results_dir")
+TRESH_DIR = config.get("Paths", "tresh_dir")
+PROCESSED_DIR = config.get("Paths", "processed_dir")
 
 # Параметры обработки
-SAVE_IMAGES = config.getboolean('Processing', 'save_images')
-DPI = config.getint('Processing', 'dpi')
+SAVE_IMAGES = config.getboolean("Processing", "save_images")
+DPI = config.getint("Processing", "dpi")
 
 # Параметры watchdog
-SLEEP_DELAY = config.getfloat('Watchdog', 'sleep_delay')
+SLEEP_DELAY = config.getfloat("Watchdog", "sleep_delay")
 
 # Создаем необходимые папки, если их нет
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(TRESH_DIR, exist_ok=True)
 os.makedirs(PROCESSED_DIR, exist_ok=True)
+
 
 # ----------------------- ФУНКЦИИ -----------------------
 def preprocess_image(image):
@@ -60,15 +66,13 @@ def preprocess_image(image):
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
-    sharpen_kernel = np.array([[-1, -1, -1],
-                               [-1,  9, -1],
-                               [-1, -1, -1]])
+    sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
     sharpened = cv2.filter2D(gray, -1, sharpen_kernel)
-    binary = cv2.adaptiveThreshold(sharpened, 255,
-                                   cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY_INV,
-                                   11, 2)
+    binary = cv2.adaptiveThreshold(
+        sharpened, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2
+    )
     return binary
+
 
 def process_pdf(file_path):
     """
@@ -93,20 +97,24 @@ def process_pdf(file_path):
 
     # Предобработка для выделения текстовых областей
     binary = preprocess_image(img_rgb)
-    data = pytesseract.image_to_data(binary, lang="rus",
-                                     output_type=Output.DICT,
-                                     config="--psm 6")
+    data = pytesseract.image_to_data(
+        binary, lang="rus", output_type=Output.DICT, config="--psm 6"
+    )
 
     # Получаем координаты распознанных блоков
-    boxes = [(data['left'][i], data['top'][i], data['width'][i], data['height'][i])
-             for i in range(len(data['level']))
-             if data['text'][i].strip()]
+    boxes = [
+        (data["left"][i], data["top"][i], data["width"][i], data["height"][i])
+        for i in range(len(data["level"]))
+        if data["text"][i].strip()
+    ]
 
     mask = np.zeros_like(binary)
-    for (x, y, w, h) in boxes:
-        mask[y:y+h, x:x+w] = 255
+    for x, y, w, h in boxes:
+        mask[y : y + h, x : x + w] = 255
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (80, 60))
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (80, 60)
+    )  # 80 60 ширина / высота
     dilated = cv2.dilate(mask, kernel, iterations=1)
 
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -117,14 +125,16 @@ def process_pdf(file_path):
     x, y, w, h = cv2.boundingRect(max_contour)
 
     # Обводим найденную область на полном изображении
-    cv2.rectangle(full_outlined_image, (x, y), (x+w, y+h), (0, 255, 0), 3)
+    cv2.rectangle(full_outlined_image, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
     # Извлекаем область для распознавания
-    largest_text_area = img_rgb[y:y+h, x:x+w]
+    largest_text_area = img_rgb[y : y + h, x : x + w]
     binary_text = preprocess_image(largest_text_area)
     kernel_small = cv2.getStructuringElement(cv2.MORPH_RECT, (60, 20))
     dilated_small = cv2.dilate(binary_text, kernel_small, iterations=1)
-    contours_small, _ = cv2.findContours(dilated_small, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours_small, _ = cv2.findContours(
+        dilated_small, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
 
     # Сортируем найденные контуры по координате Y
     contours_small = sorted(contours_small, key=lambda cnt: cv2.boundingRect(cnt)[1])
@@ -135,13 +145,17 @@ def process_pdf(file_path):
 
     for contour in contours_small:
         cx, cy, cw, ch = cv2.boundingRect(contour)
-        text_area = largest_text_area[cy:cy+ch, cx:cx+cw]
+        text_area = largest_text_area[cy : cy + ch, cx : cx + cw]
         processed_text = preprocess_image(text_area)
-        text = pytesseract.image_to_string(processed_text, lang="rus", config="--psm 6").strip()
+        text = pytesseract.image_to_string(
+            processed_text, lang="rus", config="--psm 6"
+        ).strip()
         if text:
             recognized_text_lines.append(text)
             if SAVE_IMAGES:
-                cv2.rectangle(outlined_area_image, (cx, cy), (cx+cw, cy+ch), (0, 255, 0), 2)
+                cv2.rectangle(
+                    outlined_area_image, (cx, cy), (cx + cw, cy + ch), (0, 255, 0), 2
+                )
 
     recognized_text = "\n".join(recognized_text_lines)
 
@@ -151,16 +165,28 @@ def process_pdf(file_path):
 
     if SAVE_IMAGES:
         # Сохраняем полное изображение с обведенной областью
-        full_outlined_filename = os.path.join(RESULTS_DIR, f"{base_name}_{timestamp}_full_outlined.jpg")
-        cv2.imwrite(full_outlined_filename, cv2.cvtColor(full_outlined_image, cv2.COLOR_RGB2BGR))
+        full_outlined_filename = os.path.join(
+            RESULTS_DIR, f"{base_name}_{timestamp}_full_outlined.jpg"
+        )
+        cv2.imwrite(
+            full_outlined_filename, cv2.cvtColor(full_outlined_image, cv2.COLOR_RGB2BGR)
+        )
 
         # Сохраняем область с обведенными строками
-        outlined_area_filename = os.path.join(RESULTS_DIR, f"{base_name}_{timestamp}_outlined.jpg")
-        cv2.imwrite(outlined_area_filename, cv2.cvtColor(outlined_area_image, cv2.COLOR_RGB2BGR))
+        outlined_area_filename = os.path.join(
+            RESULTS_DIR, f"{base_name}_{timestamp}_outlined.jpg"
+        )
+        cv2.imwrite(
+            outlined_area_filename, cv2.cvtColor(outlined_area_image, cv2.COLOR_RGB2BGR)
+        )
 
         # Сохраняем оригинальную (вырезанную) область без обводки
-        cropped_area_filename = os.path.join(RESULTS_DIR, f"{base_name}_{timestamp}_cropped.jpg")
-        cv2.imwrite(cropped_area_filename, cv2.cvtColor(largest_text_area, cv2.COLOR_RGB2BGR))
+        cropped_area_filename = os.path.join(
+            RESULTS_DIR, f"{base_name}_{timestamp}_cropped.jpg"
+        )
+        cv2.imwrite(
+            cropped_area_filename, cv2.cvtColor(largest_text_area, cv2.COLOR_RGB2BGR)
+        )
 
     text_filename = os.path.join(RESULTS_DIR, f"{base_name}_{timestamp}.txt")
     with open(text_filename, "w", encoding="utf-8") as f:
@@ -174,6 +200,7 @@ def process_pdf(file_path):
             f"  Оригинальная область: {cropped_area_filename}"
         )
     logger.info(f"Сохранен текстовый файл: {text_filename}")
+
 
 def process_existing_files():
     """
@@ -203,9 +230,11 @@ def process_existing_files():
             except Exception as e:
                 logger.error(f"Ошибка при перемещении {file} в папку tresh: {e}")
 
+
 # ----------------------- WATCHDOG -----------------------
 class PDFEventHandler(FileSystemEventHandler):
     """Обработчик событий для мониторинга создания файлов в указанной папке."""
+
     def on_created(self, event):
         # Игнорируем события для папок
         if event.is_directory:
@@ -234,6 +263,7 @@ class PDFEventHandler(FileSystemEventHandler):
             except Exception as e:
                 logger.error(f"Ошибка при перемещении {file_name} в папку tresh: {e}")
 
+
 if __name__ == "__main__":
     # Сначала обрабатываем все уже лежащие в папке файлы
     process_existing_files()
@@ -242,8 +272,8 @@ if __name__ == "__main__":
     event_handler = PDFEventHandler()
     observer = Observer()
     observer.schedule(event_handler, MONITORED_DIR, recursive=False)
-    #Если указать recursive=True, то любые изменения, происходящие не только в указанной директории, 
-    #но и в её подкаталогах, также будут отслеживаться. 
+    # Если указать recursive=True, то любые изменения, происходящие не только в указанной директории,
+    # но и в её подкаталогах, также будут отслеживаться.
     observer.start()
     logger.info(f"Мониторинг папки {MONITORED_DIR} запущен...")
     try:
