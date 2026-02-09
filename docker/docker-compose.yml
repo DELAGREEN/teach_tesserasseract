@@ -13,7 +13,7 @@ services:
     env_file:
       - ../.env
     environment:
-      - MONITORED_DIR=${MONITORED_DIR:-/pdf}
+      - MONITORED_DIR=${CONTAINER_MONITORED_DIR:-/app/pdf}
       - UID=${UID:-1000}
       - GID=${GID:-1000}
     volumes:
@@ -24,8 +24,8 @@ services:
         read_only: true
       # Каталог для мониторинга, с использованием переменной окружения
       - type: bind
-        source: ../pdf
-        target: ${MONITORED_DIR}
+        source: ${HOST_MONITORED_DIR:-../pdf}
+        target: ${CONTAINER_MONITORED_DIR:-/app/pdf}
         consistency: consistent
       # Монтирование настроек времени
       - /etc/localtime:/etc/localtime:ro
