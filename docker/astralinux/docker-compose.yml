@@ -33,4 +33,5 @@ services:
       # Монтирование настроек времени
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+    network_mode: host
     restart: unless-stopped
