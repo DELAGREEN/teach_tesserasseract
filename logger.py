@@ -4,7 +4,7 @@ import inspect
 
 # Получаем уровень логирования из переменной окружения, по умолчанию INFO
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-LOG_FILE = os.getenv("LOG_FILE", "test.log")
+LOG_FILE = os.getenv("LOG_FILE", "logs.log")
 
 # Создаём логгер
 logger = logging.getLogger("custom_logger")
