@@ -37,6 +37,15 @@ RESULTS_DIR   = config.get('Paths', 'results_dir')
 TRESH_DIR     = config.get('Paths', 'tresh_dir')
 PROCESSED_DIR = config.get('Paths', 'processed_dir')
 
+if not MONITORED_DIR:  # Проверяет и пустую строку, и None, и False
+    raise ValueError("Отсутствует путь monitored_dir в config файле.")
+if not RESULTS_DIR:
+    raise ValueError("Отсутствует путь для results_dir в config файле.")
+if not TRESH_DIR:
+    raise ValueError("Отсутствует путь для tresh_dir в config файле.")
+if not PROCESSED_DIR:
+    raise ValueError("Отсутствует путь для processed_dir в config файле.")
+
 # Параметры обработки
 SAVE_IMAGES = config.getboolean('Processing', 'save_images')
 DPI = config.getint('Processing', 'dpi')
