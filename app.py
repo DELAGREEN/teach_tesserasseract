@@ -37,6 +37,7 @@ RESULTS_DIR   = config.get('Paths', 'results_dir')
 TRESH_DIR     = config.get('Paths', 'tresh_dir')
 PROCESSED_DIR = config.get('Paths', 'processed_dir')
 
+#Валидация конфиг файла
 if not MONITORED_DIR:  # Проверяет и пустую строку, и None, и False
     raise ValueError("Отсутствует путь monitored_dir в config файле.")
 if not RESULTS_DIR:
