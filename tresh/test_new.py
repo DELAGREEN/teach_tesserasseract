@@ -239,7 +239,11 @@ def clean_text(text):
     return '\n'.join(cleaned_lines)
 
 
-def convert_pdf_to_text_simple(image, width_tolerance=0.3):
+def convert_pdf_to_text_simple(image, width_tolerance=0.3, show_image=False):
+    """
+    Упрощенная функция для распознавания текста в блоках.
+    Параметр show_image: True – показать окно с визуализацией, False – только распознавание (для сервера).
+    """
     text_blocks = detect_text_blocks(image)
     if not text_blocks:
         print("Не найдено текстовых блоков")
@@ -253,7 +257,8 @@ def convert_pdf_to_text_simple(image, width_tolerance=0.3):
 
     main_blocks_sorted = sort_blocks_correctly(main_blocks, image.shape[1])
 
-    result_image = image.copy()
+    # Создаём копию изображения только если нужен показ (экономия памяти на сервере)
+    result_image = image.copy() if show_image else None
     all_text_data = {}
     full_text = ""
 
@@ -277,44 +282,48 @@ def convert_pdf_to_text_simple(image, width_tolerance=0.3):
         }
         print(cleaned_text)
 
-        cv2.rectangle(result_image, (x, y), (x+w, y+h), (255,0,0), 3)
-        cv2.putText(result_image, f'Block {i+1}', (x, y-10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,0), 2)
+        # Рисуем рамки только при show_image
+        if show_image:
+            cv2.rectangle(result_image, (x, y), (x+w, y+h), (255,0,0), 3)
+            cv2.putText(result_image, f'Block {i+1}', (x, y-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,0), 2)
 
-    # Показать остальные блоки серым
-    all_blocks_sorted = sort_blocks_correctly(text_blocks, image.shape[1])
-    for block_info in all_blocks_sorted:
-        if block_info not in main_blocks_sorted:
-            x, y, w, h = block_info['bbox']
-            cv2.rectangle(result_image, (x, y), (x+w, y+h), (128,128,128), 1)
+    # Показать остальные блоки серым (если нужен показ)
+    if show_image:
+        all_blocks_sorted = sort_blocks_correctly(text_blocks, image.shape[1])
+        for block_info in all_blocks_sorted:
+            if block_info not in main_blocks_sorted:
+                x, y, w, h = block_info['bbox']
+                cv2.rectangle(result_image, (x, y), (x+w, y+h), (128,128,128), 1)
 
     print("\n" + "="*60)
     print("ПОЛНЫЙ ТЕКСТ")
     print("="*60)
     print(full_text)
 
-    # Масштабирование под экран
-    try:
-        root = tk.Tk()
-        screen_w = root.winfo_screenwidth()
-        screen_h = root.winfo_screenheight()
-        root.destroy()
-    except:
-        screen_w, screen_h = 1920, 1080
+    # Показ изображения только если явно запрошен
+    if show_image:
+        try:
+            import tkinter as tk
+            root = tk.Tk()
+            screen_w = root.winfo_screenwidth()
+            screen_h = root.winfo_screenheight()
+            root.destroy()
+        except:
+            screen_w, screen_h = 1920, 1080
 
-    h_img, w_img = result_image.shape[:2]
-    scale = min(screen_w / w_img, screen_h / h_img, 1.0)
-    if scale < 1.0:
-        new_w = int(w_img * scale)
-        new_h = int(h_img * scale)
-        result_image = cv2.resize(result_image, (new_w, new_h))
+        h_img, w_img = result_image.shape[:2]
+        scale = min(screen_w / w_img, screen_h / h_img, 1.0)
+        if scale < 1.0:
+            new_w = int(w_img * scale)
+            new_h = int(h_img * scale)
+            result_image = cv2.resize(result_image, (new_w, new_h))
 
-    cv2.imshow('Text Blocks - Simple Recognition', result_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        cv2.imshow('Text Blocks - Simple Recognition', result_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     return all_text_data, full_text
-
 
 def print_blocks_summary(text_blocks, main_blocks, image_width):
     print("\n" + "="*60)
@@ -333,8 +342,12 @@ if __name__ == "__main__":
     path = '/home/icebook7/rep/teach_tesserasseract/pdf/РНАТ.713141.724_182778663.dwg.pdf'
     image = extract_image(path, 0)
 
+    # Для сервера: show_image=False (окно не появится)
+    # Для отладки на локальной машине: show_image=True
+    SHOW_PREVIEW = True   # <-- поменять на True, если нужен визуальный вывод
+
     print("=== ПРОСТОЕ РАСПОЗНАВАНИЕ ТЕКСТА ПО БЛОКАМ ===")
-    text_data, full_text = convert_pdf_to_text_simple(image, width_tolerance=0.3)
+    text_data, full_text = convert_pdf_to_text_simple(image, width_tolerance=0.3, show_image=SHOW_PREVIEW)
 
     text_blocks = detect_text_blocks(image)
     main_blocks, _ = find_main_blocks_by_width(text_blocks, 0.3)
