@@ -9,8 +9,8 @@ sub_modules/tesseract
 __pycache__
 *.log
 test_server/pdf_storage/*
-
-#Not ignered
+*.pdf
+#Not ignored
 !pdf/processed/
 !pdf/results/
 !pdf/tresh/
