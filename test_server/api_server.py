@@ -1,249 +1,268 @@
-# test_api_server.py
-
-from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
-from typing import Optional
 import os
-import uvicorn
-from datetime import datetime
-import glob
+import hashlib
+from fastapi import FastAPI, HTTPException, Depends, Header, status
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timedelta
+import uuid
+import io
 
-app = FastAPI(title="Test PDF API Server", description="Тестовый API сервер для раздачи PDF файлов")
+app = FastAPI(title="Mock Production API with Real Files")
 
-# Конфигурация
-PDF_STORAGE_DIR = os.getenv("PDF_STORAGE_DIR", "./pdf_storage")  # Папка с PDF файлами
-AUTH_TOKEN = os.getenv("API_TOKEN", "test_token_12345")
-USERS = {
-    "admin": "admin123",
-    "test_user": "test_pass"
-}
-
-# Создаём папку для PDF если её нет
-os.makedirs(PDF_STORAGE_DIR, exist_ok=True)
-
-# Модели данных
+# ---------- Модели данных (без изменений) ----------
 class AuthRequest(BaseModel):
-    username: str
+    loginName: str
     password: str
+    passwordType: str = "plainText"
+    roleID: int = 0
+    accessLevelID: int = 0
 
 class AuthResponse(BaseModel):
-    token: str
-    user_id: Optional[int] = None
+    accessToken: str
+    refreshToken: str
+    expireTime: str
 
-# Вспомогательные функции
-def get_pdf_files():
-    """Получает список всех PDF файлов в директории"""
-    pdf_files = []
-    pdf_paths = glob.glob(os.path.join(PDF_STORAGE_DIR, "*.pdf"))
-    
-    for i, file_path in enumerate(pdf_paths):
-        filename = os.path.basename(file_path)
-        stat = os.stat(file_path)
-        pdf_files.append({
-            "id": i + 1,  # Простая нумерация
-            "blobId": f"blob_{i + 1}",
-            "name": filename,
-            "size": stat.st_size,
-            "created_at": datetime.fromtimestamp(stat.st_ctime).isoformat()
-        })
-    return pdf_files
+class Condition(BaseModel):
+    attributeId: int
+    relationalOperator: str
+    logicalOperator: str = "none"
+    groupID: int = 0
+    value: str
+    content: Optional[str] = None
 
-def find_pdf_by_id(object_id: int):
-    """Находит PDF файл по ID"""
-    pdf_files = get_pdf_files()
-    for pdf in pdf_files:
-        if pdf["id"] == object_id:
-            return pdf
-    return None
+class SelectRequest(BaseModel):
+    objectTypeId: int = -1
+    attributeIdsToSelect: List[int] = [-2]
+    conditions: List[Condition] = []
 
-def find_pdf_by_blob_id(blob_id: str):
-    """Находит PDF файл по blobId"""
-    pdf_files = get_pdf_files()
-    for pdf in pdf_files:
-        if pdf["blobId"] == blob_id:
-            return pdf
-    return None
+class AttributeFileInfo(BaseModel):
+    blobId: int
+    realFileSize: int
+    packedFileSize: int
+    modifyDate: str
+    fileName: str
+    arcMethod: str = "notPacked"
+    note: str = ""
+    fileType: str = "ftNormal"
+    authorId: int = 0
+    fileStorageId: int = 0
 
-# Middleware для проверки авторизации
-async def verify_token(token: str):
-    """Проверяет валидность токена"""
-    if not token:
-        return False
-    # Убираем "Bearer " если есть
-    if token.startswith("Bearer "):
-        token = token[7:]
-    return token == AUTH_TOKEN
+class AttributeValue(BaseModel):
+    attributeId: int
+    attributeFieldType: str = "ftFile"
+    isMultiple: bool = True
+    fileInfoCollection: List[AttributeFileInfo] = []
 
-# Эндпоинты API
+class ObjectFilesResponse(BaseModel):
+    objectVersionId: int
+    objectType: int
+    readOnly: bool
+    attributes: List[AttributeValue]
 
-@app.get("/")
-async def root():
-    """Корневой эндпоинт с информацией о сервере"""
-    return {
-        "service": "Test PDF API Server",
-        "version": "1.0.0",
-        "pdf_storage_dir": PDF_STORAGE_DIR,
-        "pdf_count": len(get_pdf_files()),
-        "status": "ready"
+class UpdateAttributeRequest(BaseModel):
+    attributeID: int
+    values: List[str]
+
+# ---------- Хранилища ----------
+sessions: Dict[str, dict] = {}
+objects_store: Dict[int, Dict[str, Any]] = {}
+custom_attributes: Dict[tuple, List[str]] = {}
+
+# Базовая директория с файлами (настраивается)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MOCK_FILES_ROOT = os.path.join(BASE_DIR, "mock_files")
+
+def get_blob_id_from_filename(filename: str) -> int:
+    """Преобразует имя файла в стабильный числовой blobId (хеш)"""
+    # Используем SHA256 и берём первые 9 цифр (максимум 999,999,999)
+    hash_digest = hashlib.sha256(filename.encode()).hexdigest()
+    # Преобразуем шестнадцатеричную строку в целое число
+    blob_id = int(hash_digest[:8], 16)  # 8 символов = 32 бита, даст до 4 млрд
+    return blob_id
+
+def scan_object_files(object_id: int) -> List[AttributeFileInfo]:
+    """Сканирует папку mock_files/{object_id}/ и возвращает список файлов с метаданными"""
+    object_dir = os.path.join(MOCK_FILES_ROOT, str(object_id))
+    if not os.path.isdir(object_dir):
+        return []  # Нет папки — нет
+
+    file_infos = []
+    for entry in os.listdir(object_dir):
+        full_path = os.path.join(object_dir, entry)
+        if not os.path.isfile(full_path):
+            continue
+        stat = os.stat(full_path)
+        modify_date = datetime.fromtimestamp(stat.st_mtime).isoformat()
+        blob_id = get_blob_id_from_filename(entry)
+        file_infos.append(AttributeFileInfo(
+            blobId=blob_id,
+            realFileSize=stat.st_size,
+            packedFileSize=stat.st_size,  # для мока без сжатия
+            modifyDate=modify_date,
+            fileName=entry,
+            arcMethod="notPacked",
+            note="",
+            fileType="ftNormal",
+            authorId=1,
+            fileStorageId=0
+        ))
+    return file_infos
+
+# Инициализация объектов (можно также добавить статические объекты)
+def init_objects():
+    # Объект 101 (как в примере)
+    objects_store[101] = {
+        "objectTypeId": 1,
+        "objectVersionId": 1001,
+        "readOnly": False,
+        "attributes": {
+            30357: {"values": ["false"], "fieldType": "ftBoolean", "isMultiple": False},
+            30356: {"values": ["Исходный текст", "Еще строка"], "fieldType": "ftString", "isMultiple": True},
+        }
+    }
+    # Объект 102
+    objects_store[102] = {
+        "objectTypeId": 2,
+        "objectVersionId": 1002,
+        "readOnly": True,
+        "attributes": {
+            999: {"values": ["test value"], "fieldType": "ftString", "isMultiple": False}
+        }
     }
 
-@app.post("/core/api/Auth/authenticate")
-async def authenticate(auth: AuthRequest):
-    """Эндпоинт аутентификации"""
-    if auth.username in USERS and USERS[auth.username] == auth.password:
-        return AuthResponse(token=AUTH_TOKEN, user_id=1)
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
-        )
+init_objects()
 
-@app.get("/core/api/objects/select")
-async def get_objects(authorization: Optional[str] = None):
-    """Получение списка всех PDF объектов"""
-    # Проверяем авторизацию
-    if not await verify_token(authorization):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing token"
-        )
-    
-    objects = get_pdf_files()
-    return JSONResponse(content=objects)
+# ---------- Вспомогательные функции (аутентификация без изменений) ----------
+def verify_token(authorization: Optional[str] = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid Authorization format. Use Bearer <token>")
+    token = parts[1]
+    if token not in sessions:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    expire = datetime.fromisoformat(sessions[token]["expireTime"])
+    if expire < datetime.now():
+        del sessions[token]
+        raise HTTPException(status_code=401, detail="Token expired")
+    return sessions[token]["login"]
 
-@app.get("/core/api/download/{blobId}/{object_id}")
-async def download_pdf(blobId: str, object_id: int, authorization: Optional[str] = None):
-    """Скачивание PDF файла по blobId и id"""
-    # Проверяем авторизацию
-    if not await verify_token(authorization):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing token"
-        )
+def generate_token(login: str) -> str:
+    token = str(uuid.uuid4())
+    expire_time = datetime.now() + timedelta(hours=1)
+    expire_str = expire_time.isoformat()
+    sessions[token] = {
+        "login": login,
+        "expireTime": expire_str,
+        "refreshToken": str(uuid.uuid4())
+    }
+    return token, sessions[token]["refreshToken"], expire_str
+
+# ---------- Эндпоинты ----------
+@app.post("/core/api/Auth/authenticate", response_model=AuthResponse)
+async def authenticate(auth_data: AuthRequest):
+    if not auth_data.loginName or not auth_data.password:
+        raise HTTPException(status_code=400, detail="Login and password required")
+    access_token, refresh_token, expire = generate_token(auth_data.loginName)
+    return AuthResponse(accessToken=access_token, refreshToken=refresh_token, expireTime=expire)
+
+@app.post("/core/api/objects/select")
+async def select_objects(request: SelectRequest, auth: str = Depends(verify_token)):
+    result = []
+    for obj_id, obj_data in objects_store.items():
+        match = True
+        for cond in request.conditions:
+            if cond.relationalOperator != "Equal":
+                match = False
+                break
+            attrs = obj_data.get("attributes", {})
+            if cond.attributeId not in attrs:
+                match = False
+                break
+            attr_vals = attrs[cond.attributeId]["values"]
+            if cond.value not in [str(v) for v in attr_vals]:
+                match = False
+                break
+        if match:
+            result.append({"objectId": obj_id, "attributes": []})
+    return result
+
+@app.get("/core/api/files/objects/{object_id}", response_model=ObjectFilesResponse)
+async def get_file_list(object_id: int, auth: str = Depends(verify_token)):
+    """Возвращает метаданные файлов из реальной папки mock_files/{object_id}/"""
+    if object_id not in objects_store:
+        raise HTTPException(status_code=404, detail="Object not found")
+    obj = objects_store[object_id]
     
-    # Ищем файл по blobId или id
-    pdf_info = find_pdf_by_blob_id(blobId) or find_pdf_by_id(object_id)
+    # Сканируем папку с файлами для этого объекта
+    file_infos = scan_object_files(object_id)
     
-    if not pdf_info:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"PDF not found: blobId={blobId}, id={object_id}"
-        )
+    # Формируем один атрибут (ID=5001), который содержит все файлы
+    attributes_list = []
+    if file_infos:
+        attributes_list.append(AttributeValue(
+            attributeId=5001,
+            attributeFieldType="ftFile",
+            isMultiple=True,
+            fileInfoCollection=file_infos
+        ))
+    # Если файлов нет, всё равно возвращаем пустой attributes (по спецификации можно)
+    return ObjectFilesResponse(
+        objectVersionId=obj.get("objectVersionId", 0),
+        objectType=obj.get("objectTypeId", 0),
+        readOnly=obj.get("readOnly", False),
+        attributes=attributes_list
+    )
+
+@app.get("/core/api/files/objects/{obj_id}/files/{blob_id}")
+async def download_file(obj_id: int, blob_id: int, isNeedUnpack: bool = True, auth: str = Depends(verify_token)):
+    """Отдаёт реальный файл, соответствующий blobId (вычисленному из имени)"""
+    # Находим файл в папке объекта, у которого blobId совпадает
+    file_infos = scan_object_files(obj_id)
+    target_file = None
+    for fi in file_infos:
+        if fi.blobId == blob_id:
+            target_file = fi
+            break
+    if not target_file:
+        raise HTTPException(status_code=404, detail="File not found")
     
-    file_path = os.path.join(PDF_STORAGE_DIR, pdf_info["name"])
-    
+    file_path = os.path.join(MOCK_FILES_ROOT, str(obj_id), target_file.fileName)
     if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"File not found: {pdf_info['name']}"
-        )
+        raise HTTPException(status_code=404, detail="File missing on server")
     
-    return FileResponse(
-        path=file_path,
-        media_type="application/pdf",
-        filename=pdf_info["name"]
-    )
+    # Определяем MIME-тип по расширению (можно расширить)
+    media_type = "application/octet-stream"
+    if target_file.fileName.endswith(".pdf"):
+        media_type = "application/pdf"
+    elif target_file.fileName.endswith(".jpg") or target_file.fileName.endswith(".jpeg"):
+        media_type = "image/jpeg"
+    elif target_file.fileName.endswith(".png"):
+        media_type = "image/png"
+    elif target_file.fileName.endswith(".txt"):
+        media_type = "text/plain"
+    
+    return FileResponse(file_path, media_type=media_type, headers={"api-version": "1.0"})
 
-@app.get("/get-pdf")
-async def get_pdf_legacy():
-    """Legacy эндпоинт для тестов - возвращает первый PDF из папки"""
-    pdf_files = get_pdf_files()
-    
-    if not pdf_files:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No PDF files found in storage directory"
-        )
-    
-    first_pdf = pdf_files[0]
-    file_path = os.path.join(PDF_STORAGE_DIR, first_pdf["name"])
-    
-    return FileResponse(
-        path=file_path,
-        media_type="application/pdf",
-        filename=first_pdf["name"]
-    )
+@app.post("/core/api/objects/{obj_id}/attributes")
+async def update_attributes(obj_id: int, updates: List[UpdateAttributeRequest], auth: str = Depends(verify_token)):
+    if obj_id not in objects_store:
+        raise HTTPException(status_code=404, detail="Object not found")
+    for upd in updates:
+        key = (obj_id, upd.attributeID)
+        custom_attributes[key] = upd.values
+    return {"status": "ok", "message": f"Updated {len(updates)} attributes for object {obj_id}"}
 
-@app.post("/upload-pdf")
-async def upload_pdf(file: bytes = None, authorization: Optional[str] = None):
-    """Эндпоинт для загрузки новых PDF файлов"""
-    if not await verify_token(authorization):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing token"
-        )
-    
-    if not file:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No file provided"
-        )
-    
-    filename = f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    file_path = os.path.join(PDF_STORAGE_DIR, filename)
-    
-    with open(file_path, "wb") as f:
-        f.write(file)
-    
-    pdf_files = get_pdf_files()
-    new_id = len(pdf_files)
-    
-    return {
-        "message": "PDF uploaded successfully",
-        "filename": filename,
-        "blobId": f"blob_{new_id}",
-        "id": new_id
-    }
+@app.get("/debug/attributes/{obj_id}")
+async def debug_attributes(obj_id: int):
+    result = {}
+    for (oid, aid), vals in custom_attributes.items():
+        if oid == obj_id:
+            result[aid] = vals
+    return result
 
-@app.get("/admin/list-files")
-async def list_files():
-    """Административный эндпоинт для просмотра файлов"""
-    files = []
-    for filename in os.listdir(PDF_STORAGE_DIR):
-        file_path = os.path.join(PDF_STORAGE_DIR, filename)
-        if os.path.isfile(file_path) and filename.lower().endswith('.pdf'):
-            files.append({
-                "name": filename,
-                "size": os.path.getsize(file_path),
-                "modified": datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
-            })
-    return {"files": files, "count": len(files), "directory": PDF_STORAGE_DIR}
-
-@app.delete("/admin/clear-all")
-async def clear_all_files():
-    """Очистка всех PDF файлов"""
-    deleted = []
-    for filename in os.listdir(PDF_STORAGE_DIR):
-        file_path = os.path.join(PDF_STORAGE_DIR, filename)
-        if os.path.isfile(file_path) and filename.lower().endswith('.pdf'):
-            os.remove(file_path)
-            deleted.append(filename)
-    return {"message": f"Deleted {len(deleted)} files", "deleted": deleted}
-
-# Запуск сервера
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Запуск тестового API сервера")
-    print("=" * 60)
-    print(f"PDF storage directory: {PDF_STORAGE_DIR}")
-    print(f"Place your PDF files in: {os.path.abspath(PDF_STORAGE_DIR)}")
-    print(f"Auth token: {AUTH_TOKEN}")
-    print(f"Test credentials: admin/admin123 or test_user/test_pass")
-    print("=" * 60)
-    print("\nДоступные эндпоинты:")
-    print("  GET  /                          - информация о сервере")
-    print("  POST /core/api/Auth/authenticate - аутентификация")
-    print("  GET  /core/api/objects/select   - список PDF файлов")
-    print("  GET  /core/api/download/{blobId}/{id} - скачать PDF")
-    print("  GET  /get-pdf                   - скачать первый PDF")
-    print("  POST /upload-pdf                - загрузить новый PDF")
-    print("  GET  /admin/list-files          - список файлов (админ)")
-    print("=" * 60)
-    
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
