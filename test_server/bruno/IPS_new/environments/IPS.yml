@@ -5,4 +5,4 @@ variables:
   - name: OBJ_ID
     value: "101"
   - name: BLOB_ID
-    value: "2519788259"
+    value: ""
