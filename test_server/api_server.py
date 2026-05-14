@@ -127,7 +127,8 @@ def init_objects():
         "objectVersionId": 1002,
         "readOnly": True,
         "attributes": {
-            999: {"values": ["test value"], "fieldType": "ftString", "isMultiple": False}
+            30357: {"values": ["false"], "fieldType": "ftBoolean", "isMultiple": False},
+            30356: {"values": ["Исходный текст", "Еще строка"], "fieldType": "ftString", "isMultiple": True},
         }
     }
 
