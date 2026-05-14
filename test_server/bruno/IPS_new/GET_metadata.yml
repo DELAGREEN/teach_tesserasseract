@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8000/core/api/files/objects/101
+  url: http://localhost:8000/core/api/files/objects/{{OBJ_ID}}
   headers:
     - name: Authorization
       value: Bearer {{AUTH_TOKEN}}
