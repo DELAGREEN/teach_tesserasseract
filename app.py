@@ -27,9 +27,13 @@ config.read_string(config_content)
 
 # Параметры API
 API_BASE_URL = config.get("API", "base_url", fallback="http://127.0.0.1:8000")
+
 API_AUTH_ENDPOINT = config.get("API", "auth_endpoint", fallback="/core/api/Auth/authenticate")
-API_OBJECTS_ENDPOINT = config.get("API", "objects_endpoint", fallback="/core/api/objects/select")
-API_DOWNLOAD_ENDPOINT = config.get("API", "download_endpoint", fallback="/core/api/download/{blobId}/{id}")
+API_GET_OBJECTS_ID = config.get("API", "get_objects_id", fallback="/core/api/objects/select")
+API_GET_BLOB_ID = config.get("API", "get_blob_id", fallback="/core/api/files/objects/{obj_id}")
+API_DOWNLOAD_ENDPOINT = config.get("API", "download_endpoint", fallback="/core/api/files/objects/{obj_id}/files/{blob_id}")
+API_SEND_CONTENT = config.get("API", "send_content", fallback="/core/api/objects/{obj_id}/attributes")
+
 API_AUTH_USERNAME = config.get("API", "username", fallback="user")
 API_AUTH_PASSWORD = config.get("API", "password", fallback="password")
 
@@ -57,6 +61,7 @@ class APIClient:
         self.username = username
         self.password = password
         self.token = None
+        self.ids = []
         self.session = requests.Session()
 
     def authenticate(self):
@@ -90,10 +95,10 @@ class APIClient:
             logger.error(f"Ошибка аутентификации: {e}")
             return False
 
-    def get_objects(self):
+    def get_objects_id(self):
         """Получение списка объектов"""
         try:
-            objects_url = f"{self.base_url}{API_OBJECTS_ENDPOINT}"
+            objects_url = f"{self.base_url}{API_GET_OBJECTS_ID}"
             payload = {
                         "objectTypeId": -1,
                         "attributeIdsToSelect": [-2],
@@ -116,11 +121,30 @@ class APIClient:
             
             objects = response.json()
             logger.info(f"Получено объектов: {len(objects) if isinstance(objects, list) else 'неизвестно'}")
-            return objects
+            self.ids = [id["objectId"] for id in objects]
+            return self.ids
             
         except Exception as e:
             logger.error(f"Ошибка получения списка объектов: {e}")
             return None
+        
+    def get_blob_id(self):
+        """Получение перечислений id обьектов"""
+        
+        for obj_id in self.ids:
+            try:
+                blob_url = self.base_url + API_GET_BLOB_ID.format(obj_id=obj_id)
+                logger.info(f"Получение blob id: {blob_url}")
+
+                response = self.session.get(blob_url)
+                response.raise_for_status()
+
+                metadata = response.json()
+                #logger.info(f"Получен blob id: {}")
+                print(metadata)
+            except Exception as e:
+                print(e)
+
 
     def download_file(self, blob_id, object_id):
         """Скачивание файла по blobId и id"""
@@ -162,4 +186,5 @@ class APIClient:
 if __name__ == "__main__":
     client = APIClient(API_BASE_URL, API_AUTH_USERNAME, API_AUTH_PASSWORD)
     client.authenticate()
-    client.get_objects()
+    client.get_objects_id()
+    client.get_blob_id()
