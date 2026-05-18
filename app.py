@@ -130,7 +130,7 @@ class APIClient:
         
     def get_blob_id(self):
         """Получение перечислений id обьектов"""
-        
+        files = []
         for obj_id in self.ids:
             try:
                 blob_url = self.base_url + API_GET_BLOB_ID.format(obj_id=obj_id)
@@ -140,10 +140,26 @@ class APIClient:
                 response.raise_for_status()
 
                 metadata = response.json()
+                logger.info(f"Получен json: {metadata}")
+
+                if isinstance(metadata, list):
+                    attributes = metadata.get("attributes", [])
+                    if len(attributes) == 1:
+                        file_info_collection = attributes.get("fileInfoCollection", [])
+                        if len(file_info_collection) == 1:
+                            file_name = file_info_collection.get("fileName", [])
+                            if len(file_name) == 1:
+                                if (file_name.lower().endswith(".dwg.pdf")):
+                                    files.append({
+                                                "obj_id": obj_id,
+                                                "blob_id": file_info_collection.get("blobId", [])
+                                                })
+                else:
+                    logger.debug(f"Получен обьект другого типа. Ожидаемый тип dict. Получен тип: {type(metadata)}.")        
+
                 #logger.info(f"Получен blob id: {}")
-                print(metadata)
             except Exception as e:
-                print(e)
+                logger.debug(f"Exception: {e}")
 
 
     def download_file(self, blob_id, object_id):
