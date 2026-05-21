@@ -4,8 +4,7 @@ from typing import Optional, List, Callable
 from ocr_processor import OCRProcessor
 
 class APIClient:
-    def __init__(self, authenticate_url, username, password, ocr_processor=None):
-        self.authenticate_url = authenticate_url
+    def __init__(self, username, password, ocr_processor=None):
         self.username = username
         self.password = password
         self.token = None
@@ -24,7 +23,7 @@ class APIClient:
                 "roleID": 0,
                 "accessLevelID": 0
             }
-            logger.info(f"Аутентификация на {self.authenticate_url}")
+            logger.info(f"Аутентификация на {authenticate_url}")
             #response = self.session.post(self.authenticate_url, json=payload)
             response = self.session.post(authenticate_url, json=payload)
             response.raise_for_status()
@@ -121,17 +120,20 @@ class APIClient:
             logger.error(f"Ошибка скачивания файла obj={obj_id}, blob={blob_id}: {e}")
             return None
 
-    def send_content(self, send_url_template, obj_id, text, attribute_id=30357):
+    def send_content(self, send_url_template, obj_id, text: list, first_attribute_id=30357, last_attribute_id=30356):
         """Отправка текста с авто-реавторизацией"""
         try:
             send_url = send_url_template.format(obj_id=obj_id)
-            payload = {
-                "attributes": [
-                    {
-                        "attributeId": attribute_id,
-                        "value": text,
-                        "content": "text"
-                    }
+            payload = { 
+                "attributeID": 30357,
+                "values": [
+                    "true"
+                ]
+            },
+            {
+                "attributeID": 30356,
+                "values": [
+                  text
                 ]
             }
             logger.info(f"Отправка текста для объекта {obj_id}: {send_url}")
@@ -180,8 +182,10 @@ class APIClient:
                 exclude_keywords=exclude_keywords
             )
 
+            
             if filtered_text.strip():
-                self.send_content(send_url_template, obj_id, filtered_text)
+                text = filtered_text.split("\n")
+                self.send_content(send_url_template, obj_id, text)
             else:
                 logger.info(f"Текст после фильтрации пуст, отправка не требуется")
 

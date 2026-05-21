@@ -1,4 +1,3 @@
-# main.py
 import configparser
 import os
 import time
@@ -37,6 +36,7 @@ LANG = config.get("Processing", "lang", fallback="rus+eng")
 PSM = config.getint("Processing", "psm", fallback=6)
 USE_ADVANCED_RECOGNITION = config.getboolean("Processing", "use_advanced_recognition", fallback=False)
 RESULTS_DIR = config.get("Paths", "results_dir", fallback="results")
+IS_PRODUCTION = config.get("Processing", "is_production", fallback="true")
 
 # Ключевые слова
 SELECTION_KEYWORDS = [kw.strip() for kw in config.get("Selection", "keywords", fallback="").split(",") if kw.strip()]
@@ -57,18 +57,18 @@ blob_url_template = f"{API_BASE_URL}{API_GET_BLOB_ID}"
 download_url_template = f"{API_BASE_URL}{API_DOWNLOAD_ENDPOINT}"
 send_url_template = f"{API_BASE_URL}{API_SEND_CONTENT}"
 
-# Инициализация компонентов
 ocr = OCRProcessor(
     dpi=DPI,
     lang=LANG,
     psm=PSM,
+    min_area_ratio=0.005,      # можно уменьшить, если блоки очень мелкие
+    width_tolerance=0.3,
     save_images=SAVE_IMAGES,
     save_dir=os.path.join(RESULTS_DIR, "ocr_pages"),
     use_advanced=USE_ADVANCED_RECOGNITION
 )
 
 client = APIClient(
-    authenticate_url=API_AUTH_ENDPOINT,
     username=API_AUTH_USERNAME,
     password=API_AUTH_PASSWORD,
     ocr_processor=ocr
