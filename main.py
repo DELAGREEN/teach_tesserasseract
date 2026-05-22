@@ -31,13 +31,18 @@ API_AUTH_PASSWORD = config.get("API", "password")
 
 # Параметры OCR
 SAVE_IMAGES = config.getboolean("Processing", "save_images", fallback=False)
-DPI = config.getint("Processing", "dpi", fallback=200)
-LANG = config.get("Processing", "lang", fallback="rus+eng")
+DPI = config.getint("Processing", "dpi", fallback=300)
+LANG = config.get("Processing", "lang", fallback="rus")
 PSM = config.getint("Processing", "psm", fallback=6)
 USE_ADVANCED_RECOGNITION = config.getboolean("Processing", "use_advanced_recognition", fallback=False)
 RESULTS_DIR = config.get("Paths", "results_dir", fallback="results")
 IS_PRODUCTION = config.get("Processing", "is_production", fallback="true")
-
+MIN_AREA_RATIO = config.getfloat("Processing", "min_area_ratio", fallback=0.0005)
+WIDTH_TOLERANCE = config.getfloat("Processing", "width_tolerance", fallback=0.3)
+KERNEL_WIDTH = config.getint("Processing", "kernel_width", fallback=50)
+KERNEL_HEIGHT = config.getint("Processing", "kernel_height", fallback=30)
+DILATION_ITERATIONS = config.getint("Processing", "dilation_iterations", fallback=3)
+DEBUG_OCR = config.get("Processing", "debug", fallback="false")
 # Ключевые слова
 SELECTION_KEYWORDS = [kw.strip() for kw in config.get("Selection", "keywords", fallback="").split(",") if kw.strip()]
 EXCLUDE_KEYWORDS = [kw.strip() for kw in config.get("Exclusion", "exclude_keywords", fallback="").split(",") if kw.strip()]
@@ -58,15 +63,17 @@ download_url_template = f"{API_BASE_URL}{API_DOWNLOAD_ENDPOINT}"
 send_url_template = f"{API_BASE_URL}{API_SEND_CONTENT}"
 
 ocr = OCRProcessor(
-    dpi=DPI,
-    lang=LANG,
-    psm=PSM,
-    min_area_ratio=0.005,      # можно уменьшить, если блоки очень мелкие
-    width_tolerance=0.3,
-    save_images=SAVE_IMAGES,
-    save_dir=os.path.join(RESULTS_DIR, "ocr_pages"),
-    use_advanced=USE_ADVANCED_RECOGNITION
-)
+        dpi=DPI, lang=LANG, psm=PSM,
+        min_area_ratio=MIN_AREA_RATIO,
+        width_tolerance=WIDTH_TOLERANCE,
+        save_images=SAVE_IMAGES, save_dir=RESULTS_DIR,
+        use_advanced=USE_ADVANCED_RECOGNITION,
+        kernel_width=KERNEL_WIDTH,
+        kernel_height=KERNEL_HEIGHT,
+        dilation_iterations=DILATION_ITERATIONS,
+        debug=DEBUG_OCR,
+        production_mode=IS_PRODUCTION
+    )
 
 client = APIClient(
     username=API_AUTH_USERNAME,

@@ -249,6 +249,14 @@ async def download_file(obj_id: int, blob_id: int, isNeedUnpack: bool = True, au
 
 @app.post("/core/api/objects/{obj_id}/attributes")
 async def update_attributes(obj_id: int, updates: List[UpdateAttributeRequest], auth: str = Depends(verify_token)):
+    # Выводим в консоль сервера всё, что пришло
+    print(f"\n=== ПОЛУЧЕНЫ АТРИБУТЫ для объекта {obj_id} ===")
+    for upd in updates:
+        print(f"  Атрибут {upd.attributeID}:")
+        for val in upd.values:
+            print(f"    {val}")
+    print("=" * 50)
+
     if obj_id not in objects_store:
         raise HTTPException(status_code=404, detail="Object not found")
     for upd in updates:
