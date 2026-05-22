@@ -1,8 +1,8 @@
 test
 venv*
+results
 pdf/*
 pdf/processed/*
-pdf/results/*
 pdf/tresh/*
 sub_modules/langdata
 sub_modules/tesseract
