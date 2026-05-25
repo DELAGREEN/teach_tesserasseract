@@ -1,10 +1,11 @@
 import requests
 from logger import logger
+import uuid
 from typing import Optional, List, Callable
 from ocr_processor import OCRProcessor
 
 class APIClient:
-    def __init__(self, username, password, ocr_processor=None):
+    def __init__(self, username, password, ocr_processor=None, debug:bool=False, is_production:bool=True):
         self.username = username
         self.password = password
         self.token = None
@@ -12,6 +13,8 @@ class APIClient:
         self.files = []
         self.session = requests.Session()
         self.ocr = ocr_processor
+        self.debug = debug
+        self.is_production = is_production
 
     def authenticate(self, authenticate_url):
         """Получение токена авторизации"""
@@ -59,9 +62,23 @@ class APIClient:
                     return response
             raise
 
-    def get_objects_id(self, objects_url, payload):
+    def get_objects_id(self, objects_url):
         """Получение списка объектов с авто-реавторизацией"""
         try:
+            payload = {
+                "objectTypeId": -1,
+                "attributeIdsToSelect": [-2],
+                "conditions": [
+                    {
+                        "attributeId": 30357,
+                        "relationalOperator": "Equal",
+                        "logicalOperator": "none",
+                        "groupID": 0,
+                        "value": "false",
+                        "content": "text"
+                    }
+                ]
+            }
             logger.info(f"Запрос списка объектов: {objects_url}")
             response = self._request_with_reauth(self.session.post, objects_url, json=payload)
             objects = response.json()
@@ -121,21 +138,18 @@ class APIClient:
             return None
 
     def send_content(self, send_url_template, obj_id, text: list, first_attribute_id=30357, last_attribute_id=30356):
-        """Отправка текста с авто-реавторизацией"""
         try:
             send_url = send_url_template.format(obj_id=obj_id)
-            payload = { 
-                "attributeID": 30357,
-                "values": [
-                    "true"
-                ]
-            },
-            {
-                "attributeID": 30356,
-                "values": [
-                  text
-                ]
-            }
+            payload = [
+                {
+                    "attributeID": first_attribute_id,
+                    "values": ["true"]
+                },
+                {
+                    "attributeID": last_attribute_id,
+                    "values": text
+                }
+            ]
             logger.info(f"Отправка текста для объекта {obj_id}: {send_url}")
             response = self._request_with_reauth(self.session.post, send_url, json=payload)
             logger.info(f"Текст для объекта {obj_id} успешно отправлен")
@@ -162,7 +176,7 @@ class APIClient:
         for idx, file_info in enumerate(files_to_process, 1):
             obj_id = file_info["obj_id"]
             blob_id = file_info["blob_id"]
-            fname = file_info.get("file_name", "неизвестно")
+            fname = file_info.get("file_name", f"неизвестно_{uuid.uuid4().hex[:8]}")
             logger.info(f"--- Обработка {idx}/{total}: объект {obj_id}, файл '{fname}' ---")
 
             pdf_bytes = self.get_file(download_url_template, obj_id, blob_id)
@@ -170,25 +184,20 @@ class APIClient:
                 continue
 
             try:
-                raw_text = self.ocr.extract_text(pdf_bytes)
+                raw_text = self.ocr.extract_text(pdf_bytes, fname)
                 logger.info(f"Распознано символов: {len(raw_text)}")
             except Exception as e:
                 logger.error(f"Ошибка OCR: {e}")
                 raw_text = ""
-
-            filtered_text = self.ocr.filter_technical_requirements(
-                raw_text,
-                selection_keywords=selection_keywords,
-                exclude_keywords=exclude_keywords
-            )
-
-            
-            if filtered_text.strip():
-                text = filtered_text.split("\n")
+            #Если не Production не отправляем сообщение на сервер IPS
+            if raw_text.strip() and self.is_production:
+                text = raw_text.split("\n")
                 self.send_content(send_url_template, obj_id, text)
+            elif raw_text.strip() and not self.is_production:
+                print(f"Распозданный текст: {raw_text}")
             else:
-                logger.info(f"Текст после фильтрации пуст, отправка не требуется")
-
-            del pdf_bytes, raw_text, filtered_text
+                logger.info(f"Текст пуст, отправка не требуется")
+            #явно очищаем память
+            del pdf_bytes, raw_text
 
         logger.info("Обработка завершена")

@@ -19,6 +19,11 @@ with open(CONFIG_PATH, encoding="utf-8") as f:
 config = configparser.ConfigParser(interpolation=None)
 config.read_string(config_content)
 
+#Общие настройки
+IS_PRODUCTION = config.getboolean("Processing", "is_production", fallback=True)
+SAVE_IMAGES = config.getboolean("Processing", "save_images", fallback=False)
+DEBUG = config.getboolean("Processing", "debug", fallback=False)
+
 # Параметры API
 API_BASE_URL = config.get("API", "base_url")
 API_AUTH_ENDPOINT = config.get("API", "authenticate_endpoint")
@@ -30,19 +35,20 @@ API_AUTH_USERNAME = config.get("API", "username")
 API_AUTH_PASSWORD = config.get("API", "password")
 
 # Параметры OCR
-SAVE_IMAGES = config.getboolean("Processing", "save_images", fallback=False)
-DPI = config.getint("Processing", "dpi", fallback=300)
-LANG = config.get("Processing", "lang", fallback="rus")
-PSM = config.getint("Processing", "psm", fallback=6)
-USE_ADVANCED_RECOGNITION = config.getboolean("Processing", "use_advanced_recognition", fallback=False)
+DPI = config.getint("OCR", "dpi", fallback=300)
+LANG = config.get("OCR", "lang", fallback="rus")
+PSM = config.getint("OCR", "psm", fallback=6)
+USE_ADVANCED_RECOGNITION = config.getboolean("OCR", "use_advanced_recognition", fallback=False)
+MIN_AREA_RATIO = config.getfloat("OCR", "min_area_ratio", fallback=0.0005)
+WIDTH_TOLERANCE = config.getfloat("OCR", "width_tolerance", fallback=0.3)
+KERNEL_WIDTH = config.getint("OCR", "kernel_width", fallback=20)
+KERNEL_HEIGHT = config.getint("OCR", "kernel_height", fallback=30)
+DILATION_ITERATIONS = config.getint("OCR", "dilation_iterations", fallback=3)
+CHAR_WHITELIST = config.get("OCR", "char_whitelist", fallback="")
+
+#OS Settings 
 RESULTS_DIR = config.get("Paths", "results_dir", fallback="results")
-IS_PRODUCTION = config.get("Processing", "is_production", fallback="true")
-MIN_AREA_RATIO = config.getfloat("Processing", "min_area_ratio", fallback=0.0005)
-WIDTH_TOLERANCE = config.getfloat("Processing", "width_tolerance", fallback=0.3)
-KERNEL_WIDTH = config.getint("Processing", "kernel_width", fallback=50)
-KERNEL_HEIGHT = config.getint("Processing", "kernel_height", fallback=30)
-DILATION_ITERATIONS = config.getint("Processing", "dilation_iterations", fallback=3)
-DEBUG_OCR = config.get("Processing", "debug", fallback="false")
+
 # Ключевые слова
 SELECTION_KEYWORDS = [kw.strip() for kw in config.get("Selection", "keywords", fallback="").split(",") if kw.strip()]
 EXCLUDE_KEYWORDS = [kw.strip() for kw in config.get("Exclusion", "exclude_keywords", fallback="").split(",") if kw.strip()]
@@ -71,30 +77,18 @@ ocr = OCRProcessor(
         kernel_width=KERNEL_WIDTH,
         kernel_height=KERNEL_HEIGHT,
         dilation_iterations=DILATION_ITERATIONS,
-        debug=DEBUG_OCR,
-        production_mode=IS_PRODUCTION
+        debug=DEBUG,
+        production_mode=IS_PRODUCTION,
+        char_whitelist=CHAR_WHITELIST
     )
 
 client = APIClient(
     username=API_AUTH_USERNAME,
     password=API_AUTH_PASSWORD,
-    ocr_processor=ocr
+    ocr_processor=ocr,
+    debug=DEBUG
 )
 
-objects_payload = {
-    "objectTypeId": -1,
-    "attributeIdsToSelect": [-2],
-    "conditions": [
-        {
-            "attributeId": 30357,
-            "relationalOperator": "Equal",
-            "logicalOperator": "none",
-            "groupID": 0,
-            "value": "false",
-            "content": "text"
-        }
-    ]
-}
 
 # ----------------------- Основной цикл -----------------------
 if __name__ == "__main__":
@@ -115,7 +109,7 @@ if __name__ == "__main__":
         try:
             logger.info("--- Новый цикл опроса ---")
             # Получаем список необработанных объектов
-            ids = client.get_objects_id(objects_url, objects_payload)
+            ids = client.get_objects_id(objects_url)
             if not ids:
                 logger.info("Нет объектов для обработки")
             else:

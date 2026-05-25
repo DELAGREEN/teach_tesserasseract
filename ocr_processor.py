@@ -12,7 +12,7 @@ os.environ["QT_QPA_PLATFORM"] = "xcb"
 
 
 class OCRProcessor:
-    def __init__(self, dpi=300, lang="rus", psm=6, min_area_ratio=0.0005, width_tolerance=0.3,
+    def __init__(self, dpi=300, lang="rus", psm=6, char_whitelist="", min_area_ratio=0.0005, width_tolerance=0.3,
                  save_images=False, save_dir=None, use_advanced=True,
                  kernel_width=50, kernel_height=30, dilation_iterations=3,
                  debug=False, production_mode=True):
@@ -29,6 +29,7 @@ class OCRProcessor:
         self.dilation_iterations = dilation_iterations
         self.debug = debug
         self.production_mode = production_mode
+        self.char_whitelist = char_whitelist
         if self.save_images or not self.production_mode:
             os.makedirs(self.save_dir, exist_ok=True)
 
@@ -170,6 +171,8 @@ class OCRProcessor:
         x, y, w, h = block_bbox
         block_image = image[y:y+h, x:x+w]
         config = r'--psm 6 -c preserve_interword_spaces=1'
+        if self.char_whitelist:
+            config += f' -c tessedit_char_whitelist="{self.char_whitelist}"'
         return pytesseract.image_to_string(block_image, lang=self.lang, config=config).strip()
 
     def clean_text(self, text):
@@ -192,26 +195,7 @@ class OCRProcessor:
             cleaned_lines.append(' '.join(current_paragraph))
         return '\n'.join(cleaned_lines)
 
-    def filter_technical_requirements(self, text, selection_keywords=None, exclude_keywords=None):
-        if not text:
-            return ""
-        if selection_keywords is None:
-            selection_keywords = []
-        if exclude_keywords is None:
-            exclude_keywords = []
-        lines = text.splitlines()
-        filtered = []
-        for line in lines:
-            if exclude_keywords and any(kw.lower() in line.lower() for kw in exclude_keywords):
-                continue
-            if selection_keywords:
-                if any(kw.lower() in line.lower() for kw in selection_keywords):
-                    filtered.append(line)
-            else:
-                filtered.append(line)
-        return '\n'.join(filtered)
-
-    def extract_text(self, pdf_bytes):
+    def extract_text(self, pdf_bytes, file_name):
         images = self.pdf_to_images(pdf_bytes)
         if not images:
             return ""
@@ -243,7 +227,8 @@ class OCRProcessor:
                     cv2.rectangle(result_image, (x, y), (x+w, y+h), (255, 0, 0), 3)
                     cv2.putText(result_image, f'{i+1}', (x, y-10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 3)
-                save_path = os.path.join(self.save_dir, f"page_{page_idx+1}_annotated.png")
+                save_path = os.path.join(self.save_dir, 
+                                         f"{file_name}_{page_idx+1}_{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')}.png")
                 cv2.imwrite(save_path, result_image)
                 logger.debug(f"Сохранено размеченное изображение: {save_path}")
 
