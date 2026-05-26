@@ -144,9 +144,45 @@ class OCRProcessor:
             print(f"Найдено {len(text_blocks)} текстовых блоков из {len(contours)} контуров")
         return text_blocks
 
-    def sort_blocks_correctly(self, text_blocks):
-        """Сортировка блоков сверху вниз, при равном Y — справа налево."""
-        return sorted(text_blocks, key=lambda block: (block['bbox'][1], -block['bbox'][0]))
+    def sort_blocks_by_columns(self, text_blocks, x_tolerance=None):
+        """
+        Сортировка блоков для чертежей: справа налево по колонкам,
+        внутри колонки — сверху вниз.
+        """
+        if not text_blocks:
+            return []
+        if x_tolerance is None:
+            """
+            x_tolerance – допуск по горизонтали (ось X) для объединения блоков в одну колонку.
+            Если разница X-координат двух блоков <= x_tolerance, они считаются лежащими
+            в одной вертикальной зоне и сортируются внутри неё сверху вниз.
+            """
+            # TODO(DELAGREEN): в перспективе перенести в config
+            x_tolerance = getattr(self, 'x_tolerance', 50)   # можно добавить в __init__
+
+        # Сортируем все блоки по X убыванию
+        sorted_by_x = sorted(text_blocks, key=lambda b: b['bbox'][0], reverse=True)
+
+        columns = []
+        current_column = [sorted_by_x[0]]
+        for block in sorted_by_x[1:]:
+            # если X текущего блока близок к последнему в колонке — та же колонка
+            if abs(block['bbox'][0] - current_column[-1]['bbox'][0]) <= x_tolerance:
+                current_column.append(block)
+            else:
+                # завершили колонку: сортируем внутри по Y
+                current_column.sort(key=lambda b: b['bbox'][1])
+                columns.append(current_column)
+                current_column = [block]
+        # последнюю колонку тоже сортируем по Y
+        current_column.sort(key=lambda b: b['bbox'][1])
+        columns.append(current_column)
+
+        # Объединяем колонки в плоский список (порядок колонок — справа налево)
+        result = []
+        for col in columns:
+            result.extend(col)
+        return result
 
     def find_main_blocks_by_width(self, text_blocks, width_tolerance=None):
         if not text_blocks:
@@ -209,7 +245,7 @@ class OCRProcessor:
             main_blocks, _ = self.find_main_blocks_by_width(text_blocks)
             if not main_blocks:
                 main_blocks = text_blocks
-            sorted_blocks = self.sort_blocks_correctly(main_blocks)
+            sorted_blocks = self.sort_blocks_by_columns(main_blocks, 50)
             page_text = []
             for block_info in sorted_blocks:
                 block_text = self.extract_text_from_block(image, block_info['bbox'])
@@ -299,7 +335,7 @@ if __name__ == "__main__":
         print("Не удалось выделить основные блоки, используются все")
         main_blocks = text_blocks
 
-    sorted_main = processor.sort_blocks_correctly(main_blocks)
+    sorted_main = processor.sort_blocks_by_columns(main_blocks, 50)
     full_text = ""
     print("\nРАСПОЗНАННЫЙ ТЕКСТ:\n")
     for i, block in enumerate(sorted_main):
@@ -320,7 +356,7 @@ if __name__ == "__main__":
         cv2.putText(result_image, f'{i+1}', (x, y-10),
                     cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 0, 0), max(2, int(font_scale*2)))
 
-    all_sorted = processor.sort_blocks_correctly(text_blocks)
+    all_sorted = processor.sort_blocks_by_columns(text_blocks, 50)
     for block in all_sorted:
         if block not in sorted_main:
             x, y, w, h = block['bbox']

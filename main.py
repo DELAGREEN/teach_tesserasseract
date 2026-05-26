@@ -20,6 +20,7 @@ config = configparser.ConfigParser(interpolation=None)
 config.read_string(config_content)
 
 #Общие настройки
+EXTENSIONS_FILE = [ext.strip() for ext in config.get("Processing", "extensions", fallback=".dwg.pdf").split(",") if ext.strip()]
 IS_PRODUCTION = config.getboolean("Processing", "is_production", fallback=True)
 SAVE_IMAGES = config.getboolean("Processing", "save_images", fallback=False)
 DEBUG = config.getboolean("Processing", "debug", fallback=False)
@@ -114,7 +115,7 @@ if __name__ == "__main__":
                 logger.info("Нет объектов для обработки")
             else:
                 # Получаем blobId нужных файлов
-                client.get_blob_id(blob_url_template, extensions=[".dwg.pdf"])
+                client.get_blob_id(blob_url_template, extensions=EXTENSIONS_FILE)
                 # Обрабатываем (можно ограничить количество за цикл)
                 max_files = MAX_FILES_PER_CYCLE if MAX_FILES_PER_CYCLE > 0 else None
                 client.process_all_files(
