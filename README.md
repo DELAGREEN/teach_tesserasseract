@@ -19,7 +19,7 @@
 
 <br>
 
-    TESSDATA_PREFIX=../tesseract/tessdata make training MODEL_NAME=okbm_dwg_gostw2_304 START_MODEL=rus TESSDATA=../tesseract/tessdata MAX_ITERATIONS=10000
+    TESSDATA_PREFIX=../tesseract/tessdata make training MODEL_NAME=rus START_MODEL=rus TESSDATA=../tesseract/tessdata MAX_ITERATIONS=10000
 
 <br>
 
