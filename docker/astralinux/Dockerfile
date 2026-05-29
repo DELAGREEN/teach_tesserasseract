@@ -43,14 +43,15 @@ RUN touch /app/log.log && chmod 666 /app/log.log
 RUN chmod -R a+rw /app
 
 # Копируем остальные файлы
-COPY  app.py .
+COPY  api_client.py .
+COPY ocr_processor.py .
 COPY  logger.py .
-COPY  config.ini .
+COPY  main.py .
 #COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
 
 #Переключаемся на пользователя
 USER appuser
 
 # Запускаем приложение
-CMD ["venv/bin/python", "app.py"]
+CMD ["venv/bin/python", "main.py"]
 #CMD ["tail", "-f", "/dev/null"]
