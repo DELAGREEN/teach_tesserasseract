@@ -15,9 +15,11 @@ class APIClient:
         self.ocr = ocr_processor
         self.debug = debug
         self.is_production = is_production
+        self.authenticate_url = None
 
     def authenticate(self, authenticate_url):
         """Получение токена авторизации"""
+        self.authenticate_url = authenticate_url
         try:
             payload = {
                 "loginName": self.username,
@@ -55,7 +57,7 @@ class APIClient:
         except requests.HTTPError as e:
             if e.response.status_code == 401:
                 logger.warning("Получен 401, выполняю повторную аутентификацию")
-                if self.authenticate():
+                if self.authenticate(self.authenticate_url):
                     # повторяем запрос
                     response = method(url, **kwargs)
                     response.raise_for_status()
