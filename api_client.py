@@ -195,10 +195,11 @@ class APIClient:
             if raw_text.strip() and self.is_production:
                 # TODO(DELAGREEN): Загрушка
                 cleared_text = raw_text.replace("$", "3")
-                text = cleared_text.split("\n")                 
+                #Да да всё кладём впервый индекс массива так тупо работает API 
+                text = [cleared_text]                
                 self.send_content(send_url_template, obj_id, text)
-            elif raw_text.strip() and not self.is_production:
-                print(f"Распозданный текст: {text}")
+            elif raw_text.strip() and not self.debug:
+                logger.debug(f"Распозданный текст: {text}")
             else:
                 logger.info(f"Текст пуст, отправка не требуется")
             #явно очищаем память
