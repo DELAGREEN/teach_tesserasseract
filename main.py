@@ -78,6 +78,13 @@ POLLING_INTERVAL = get_config("API", "polling_interval", fallback=60, type=int)
 # Максимальное количество файлов за один цикл (можно поставить 0 для без ограничений)
 MAX_FILES_PER_CYCLE = get_config("Processing", "max_files_per_cycle", fallback=0, type=int)
 
+#Защита конфигурации
+if not IS_PRODUCTION and not DEBUG:
+    raise RuntimeError(
+        "Недопустимая конфигурация: оба флага is_production и debug установлены в False. "
+        "Обработка не будет выполнять ни отправку, ни логирование."
+    )
+
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Сборка URL
