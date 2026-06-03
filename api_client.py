@@ -192,16 +192,20 @@ class APIClient:
                 logger.error(f"Ошибка OCR: {e}")
                 raw_text = ""
             #Если не Production не отправляем сообщение на сервер IPS
-            if raw_text.strip() and self.is_production:
-                # TODO(DELAGREEN): Загрушка
-                cleared_text = raw_text.replace("$", "3")
-                #Да да всё кладём впервый индекс массива так тупо работает API 
-                text = [cleared_text]                
+            raw_stripped = raw_text.strip()
+            if not raw_stripped:
+                logger.info("Текст пуст, отправка не требуется")
+                continue
+                        
+            # TODO(DELAGREEN): Загрушка
+            cleared_text = raw_stripped.replace("$", "3").strip()
+            text = [cleared_text]
+            try:
                 self.send_content(send_url_template, obj_id, text)
-            elif raw_text.strip() and not self.debug:
-                logger.debug(f"Распозданный текст: {text}")
-            else:
-                logger.info(f"Текст пуст, отправка не требуется")
+                logger.debug(f"Распознанный текст: {text}")
+            except Exception as e:
+                logger.error(f"Ошибка отправки для {obj_id}: {e}")
+
             #явно очищаем память
             del pdf_bytes, raw_text
 
