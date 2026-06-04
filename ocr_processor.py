@@ -120,15 +120,13 @@ class OCRProcessor:
             return []
 
         min_area = image.shape[0] * image.shape[1] * self.min_area_ratio
-        if self.debug:
-            print(f"min_area = {min_area:.0f} (изображение {image.shape[1]}x{image.shape[0]})")
+        logger.debug(f"min_area = {min_area:.0f} (изображение {image.shape[1]}x{image.shape[0]})")
         text_blocks = []
         for idx, contour in enumerate(contours):
             area = cv2.contourArea(contour)
             x, y, w, h = cv2.boundingRect(contour)
             if area < min_area:
-                if self.debug:
-                    print(f"  Блок #{idx} ({w}x{h}) отброшен: площадь {area:.0f} < {min_area:.0f}")
+                logger.debug(f"  Блок #{idx} ({w}x{h}) отброшен: площадь {area:.0f} < {min_area:.0f}")
                 continue
             roi = image[y:y+h, x:x+w]
             if self.use_advanced and self.is_likely_drawing(roi, block_info=f"#{idx} ({w}x{h})"):
@@ -274,20 +272,66 @@ class OCRProcessor:
 # ----------------------- АВТОНОМНЫЙ ЗАПУСК -----------------------
 if __name__ == "__main__":
     import argparse
+    import numpy as np
 
-    parser = argparse.ArgumentParser(description="OCR Processor для извлечения текста из PDF")
+    parser = argparse.ArgumentParser(description="Визуализация фильтрации блоков OCR")
     parser.add_argument("pdf_path", nargs="?", default=None, help="Путь к PDF-файлу")
-    parser.add_argument("--debug", action="store_true", help="Включить отладочный вывод")
-    parser.add_argument("--min-area-ratio", type=float, default=0.0005, help="Минимальная доля площади блока")
-    parser.add_argument("--kernel-width", type=int, default=50, help="Ширина ядра морфологии")
-    parser.add_argument("--kernel-height", type=int, default=30, help="Высота ядра морфологии")
-    parser.add_argument("--dilations", type=int, default=3, help="Число итераций расширения")
-    parser.add_argument("--width-tolerance", type=float, default=0.3, help="Допуск по ширине для основного столбца")
-    parser.add_argument("--font-scale", type=float, default=2.8, help="Масштаб шрифта номеров блоков")
-    parser.add_argument("--no-advanced", action="store_true", help="Отключить фильтрацию чертежей")
+    parser.add_argument("--debug", action="store_true", help="Включить отладочный вывод в консоль")
+    parser.add_argument("--min-area-ratio", type=float, default=None, help="Переопределить min_area_ratio из конфига")
+    parser.add_argument("--kernel-width", type=int, default=None)
+    parser.add_argument("--kernel-height", type=int, default=None)
+    parser.add_argument("--dilations", type=int, default=None)
+    parser.add_argument("--width-tolerance", type=float, default=None)
+    parser.add_argument("--no-advanced", action="store_true", help="Отключить фильтрацию чертежей (для сравнения)")
     args = parser.parse_args()
 
-    default_pdf = "/home/user/rep/teach_tesserasseract/pdf/processed/КЛАБ.302231.008СБ_180567923.dwg.pdf"
+    # Загрузка конфигурации (как у вас)
+    CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.ini")
+    with open(CONFIG_PATH, encoding="utf-8") as f:
+        config_content = os.path.expandvars(f.read())
+    import configparser
+    config = configparser.ConfigParser(interpolation=None)
+    config.read_string(config_content)
+
+    def get_config(section, key, fallback=None, type=str):
+        env_key = f"{section}_{key}".upper()
+        env_value = os.environ.get(env_key)
+        if env_value is not None:
+            if type == bool:
+                return env_value.lower() in ('true', '1', 'yes')
+            return type(env_value)
+        if type == bool:
+            return config.getboolean(section, key, fallback=fallback)
+        elif type == int:
+            return config.getint(section, key, fallback=fallback)
+        elif type == float:
+            return config.getfloat(section, key, fallback=fallback)
+        else:
+            return config.get(section, key, fallback=fallback)
+
+    def override_if_set(arg_value, current):
+        return current if arg_value is None else arg_value
+
+    # Параметры из конфига / командной строки
+    DPI = get_config("OCR", "dpi", fallback=300, type=int)
+    MIN_AREA_RATIO = get_config("OCR", "min_area_ratio", fallback=0.0005, type=float)
+    WIDTH_TOLERANCE = get_config("OCR", "width_tolerance", fallback=0.3, type=float)
+    KERNEL_WIDTH = get_config("OCR", "kernel_width", fallback=20, type=int)
+    KERNEL_HEIGHT = get_config("OCR", "kernel_height", fallback=30, type=int)
+    DILATION_ITERATIONS = get_config("OCR", "dilation_iterations", fallback=3, type=int)
+    USE_ADVANCED = get_config("OCR", "use_advanced_recognition", fallback=False, type=bool)
+    DEBUG = get_config("Processing", "debug", fallback=False, type=bool)
+
+    # Переопределение из аргументов
+    MIN_AREA_RATIO = override_if_set(args.min_area_ratio, MIN_AREA_RATIO)
+    KERNEL_WIDTH = override_if_set(args.kernel_width, KERNEL_WIDTH)
+    KERNEL_HEIGHT = override_if_set(args.kernel_height, KERNEL_HEIGHT)
+    DILATION_ITERATIONS = override_if_set(args.dilations, DILATION_ITERATIONS)
+    WIDTH_TOLERANCE = override_if_set(args.width_tolerance, WIDTH_TOLERANCE)
+    DEBUG = override_if_set(args.debug, DEBUG)
+
+    # Подготовка PDF
+    default_pdf = "/home/user/rep/teach_tesseract_new/teach_tesserasseract/test_server/mock_files/101/К0800-3373_206898589.dwg.pdf"
     pdf_path = args.pdf_path
     if not pdf_path:
         if os.path.exists(default_pdf):
@@ -295,7 +339,6 @@ if __name__ == "__main__":
             print(f"Используется путь по умолчанию: {pdf_path}")
         else:
             pdf_path = input("Введите путь к PDF-файлу: ").strip()
-
     if not pdf_path or not os.path.exists(pdf_path):
         print(f"❌ Файл не найден: {pdf_path}")
         sys.exit(1)
@@ -303,82 +346,143 @@ if __name__ == "__main__":
     with open(pdf_path, 'rb') as f:
         pdf_bytes = f.read()
 
-    # Автономный запуск – не продакшн, поэтому production_mode=False
-    processor = OCRProcessor(
-        dpi=300, lang="rus", psm=6,
-        min_area_ratio=args.min_area_ratio,
-        width_tolerance=args.width_tolerance,
-        save_images=True, save_dir="results/ocr_debug",
-        use_advanced=not args.no_advanced,
-        kernel_width=args.kernel_width,
-        kernel_height=args.kernel_height,
-        dilation_iterations=args.dilations,
-        debug=args.debug,
+    # Создаём два процессора:
+    # 1. "штатный" – для определения, прошёл бы блок фильтры.
+    # 2. "сырой" – для извлечения всех контуров без фильтрации.
+    processor_normal = OCRProcessor(
+        dpi=DPI, lang="rus", psm=6,
+        min_area_ratio=MIN_AREA_RATIO,
+        width_tolerance=WIDTH_TOLERANCE,
+        save_images=False,
+        use_advanced=USE_ADVANCED,
+        kernel_width=KERNEL_WIDTH,
+        kernel_height=KERNEL_HEIGHT,
+        dilation_iterations=DILATION_ITERATIONS,
+        debug=False,
         production_mode=False
     )
 
-    images = processor.pdf_to_images(pdf_bytes)
+    # Для сбора всех контуров: min_area_ratio = 0, use_advanced = False
+    processor_raw = OCRProcessor(
+        dpi=DPI, lang="rus", psm=6,
+        min_area_ratio=0.0,
+        width_tolerance=WIDTH_TOLERANCE,
+        save_images=False,
+        use_advanced=False,
+        kernel_width=KERNEL_WIDTH,
+        kernel_height=KERNEL_HEIGHT,
+        dilation_iterations=DILATION_ITERATIONS,
+        debug=False,
+        production_mode=False
+    )
+
+    images = processor_raw.pdf_to_images(pdf_bytes)
     if not images:
         print("❌ Не удалось извлечь изображения")
         sys.exit(1)
 
-    image = images[0]
-    print(f"Обрабатывается страница 1 из {len(images)}...")
+    # Для каждой страницы анализируем и показываем
+    for page_idx, image in enumerate(images):
+        print(f"\n====== Страница {page_idx+1} ======")
+        # Получаем ВСЕ контуры с сырым процессором
+        all_blocks = processor_raw.detect_text_blocks(image)  # вернёт все, т.к. min_area=0 и без фильтра чертежей
 
-    text_blocks = processor.detect_text_blocks(image)
-    if not text_blocks:
-        print("❌ Текстовые блоки не найдены.")
-        sys.exit(0)
+        # Вычисляем реальное min_area, которое используется штатным процессором
+        min_area = image.shape[0] * image.shape[1] * MIN_AREA_RATIO
 
-    main_blocks, _ = processor.find_main_blocks_by_width(text_blocks)
-    if not main_blocks:
-        print("Не удалось выделить основные блоки, используются все")
-        main_blocks = text_blocks
+        # Разделим блоки на категории и соберём причины
+        accepted_blocks = []
+        rejected_area_blocks = []   # (bbox, area)
+        rejected_drawing_blocks = [] # (bbox, reasons)
 
-    sorted_main = processor.sort_blocks_by_columns(main_blocks, 50)
-    full_text = ""
-    print("\nРАСПОЗНАННЫЙ ТЕКСТ:\n")
-    for i, block in enumerate(sorted_main):
-        text = processor.extract_text_from_block(image, block['bbox'])
-        cleaned = processor.clean_text(text)
-        if cleaned:
-            full_text += cleaned + "\n\n"
-        print(f"--- Блок {i+1} ({block['width']}x{block['height']}) ---")
-        print(cleaned)
-        print()
-
-    # Дополнительная визуализация с крупными номерами (сохраняется поверх того, что уже сделал extract_text)
-    result_image = image.copy()
-    font_scale = args.font_scale
-    for i, block in enumerate(sorted_main):
-        x, y, w, h = block['bbox']
-        cv2.rectangle(result_image, (x, y), (x+w, y+h), (255, 0, 0), 3)
-        cv2.putText(result_image, f'{i+1}', (x, y-10),
-                    cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 0, 0), max(2, int(font_scale*2)))
-
-    all_sorted = processor.sort_blocks_by_columns(text_blocks, 50)
-    for block in all_sorted:
-        if block not in sorted_main:
+        for block in all_blocks:
             x, y, w, h = block['bbox']
-            cv2.rectangle(result_image, (x, y), (x+w, y+h), (128, 128, 128), 1)
+            area = block['area']
+            if area < min_area:
+                rejected_area_blocks.append(((x, y, w, h), area))
+                continue
+            # Проверяем, отбросил бы его is_likely_drawing штатного процессора
+            roi = image[y:y+h, x:x+w]
+            # Используем тот же метод, но без изменения кода класса
+            is_drawing = processor_normal.is_likely_drawing(roi, block_info=None)
+            if is_drawing:
+                # Получим причины (дублируем логику is_likely_drawing, чтобы не менять оригинал)
+                # Этот блок кода повторяет вычисления is_likely_drawing для получения причин
+                h_roi, w_roi = roi.shape[:2]
+                area_total = h_roi * w_roi
+                gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+                contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                large_contour_area = sum(cv2.contourArea(c) for c in contours if cv2.contourArea(c) > 50)
+                contour_ratio = large_contour_area / area_total
+                lines = cv2.HoughLinesP(binary, rho=1, theta=np.pi/180, threshold=30,
+                                        minLineLength=max(5, min(w_roi, h_roi)//10), maxLineGap=3)
+                line_mask = np.zeros_like(binary)
+                if lines is not None:
+                    for line in lines:
+                        x1, y1, x2, y2 = line[0]
+                        cv2.line(line_mask, (x1, y1), (x2, y2), 255, 2)
+                hough_ratio = cv2.countNonZero(line_mask) / area_total
+                gray_float = np.float32(gray)
+                dst = cv2.cornerHarris(gray_float, blockSize=2, ksize=3, k=0.04)
+                dst = cv2.dilate(dst, None)
+                corners = np.argwhere(dst > 0.01 * dst.max())
+                corner_ratio = len(corners) / area_total
 
-    os.makedirs("results", exist_ok=True)
-    cv2.imwrite(os.path.join("results", "annotated_blocks.png"), result_image)
-    with open(os.path.join("results", "recognized_text.txt"), 'w', encoding='utf-8') as f:
-        f.write(full_text)
-    print("✅ Результаты сохранены в results/")
+                reasons = []
+                if contour_ratio > 0.3:
+                    reasons.append(f"контуры={contour_ratio:.3f}")
+                if hough_ratio > 0.02:
+                    reasons.append(f"линии={hough_ratio:.3f}")
+                if corner_ratio > 0.1:
+                    reasons.append(f"углы={corner_ratio:.3f}")
+                if contour_ratio > 0.15 and hough_ratio > 0.01:
+                    reasons.append(f"конт+лин ({contour_ratio:.3f}, {hough_ratio:.3f})")
+                if not reasons:
+                    reasons.append("неизвестная причина")  # на всякий случай
+                rejected_drawing_blocks.append(((x, y, w, h), reasons))
+            else:
+                accepted_blocks.append((x, y, w, h))
 
-    try:
-        import tkinter as tk
-        root = tk.Tk()
-        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
-        root.destroy()
-        h_img, w_img = result_image.shape[:2]
-        scale = min(sw/w_img, sh/h_img, 1.0)
-        if scale < 1.0:
-            result_image = cv2.resize(result_image, (int(w_img*scale), int(h_img*scale)))
-        cv2.imshow('Text Blocks', result_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    except:
-        pass
+        # Вывод статистики в консоль
+        print(f"Всего контуров: {len(all_blocks)}")
+        print(f"Принято (текст): {len(accepted_blocks)}")
+        print(f"Отброшено по площади (< {min_area:.0f}): {len(rejected_area_blocks)}")
+        print(f"Отброшено как чертёж: {len(rejected_drawing_blocks)}")
+        if rejected_drawing_blocks and DEBUG:
+            for bbox, reasons in rejected_drawing_blocks:
+                print(f"  Блок {bbox}: {', '.join(reasons)}")
+
+        # Визуализация на копии изображения
+        vis_image = image.copy()
+        # Принятые – зеленый
+        for (x, y, w, h) in accepted_blocks:
+            cv2.rectangle(vis_image, (x, y), (x+w, y+h), (0, 255, 0), 3)
+            cv2.putText(vis_image, "TEXT", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (255, 0, 0), 2)
+        # Отброшенные по площади – серый
+        for ((x, y, w, h), area) in rejected_area_blocks:
+            cv2.rectangle(vis_image, (x, y), (x+w, y+h), (128, 128, 128), 2)
+            cv2.putText(vis_image, f"area={area:.0f}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (128, 128, 128), 1)
+        # Отброшенные как чертёж – красный, подписываем первую причину
+        for ((x, y, w, h), reasons) in rejected_drawing_blocks:
+            cv2.rectangle(vis_image, (x, y), (x+w, y+h), (0, 0, 255), 3)
+            text = reasons[0] if reasons else "drawing"
+            cv2.putText(vis_image, text, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 255), 1)
+
+        # Масштабируем, чтобы влезло в экран
+        try:
+            import tkinter as tk
+            root = tk.Tk()
+            sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+            root.destroy()
+            h_img, w_img = vis_image.shape[:2]
+            scale = min(sw/w_img, sh/h_img, 1.0)
+            if scale < 1.0:
+                vis_image = cv2.resize(vis_image, (int(w_img*scale), int(h_img*scale)))
+        except:
+            pass
+
+        #cv2.imshow(f'Фильтрация блоков – Страница {page_idx+1}', vis_image)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
+        cv2.imwrite("debug_filtered.png", vis_image)
