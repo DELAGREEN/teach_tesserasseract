@@ -10,9 +10,6 @@
 
     git submodule add https://github.com/tesseract-ocr/tesstrain.git
 
-# Чел на Youtube 
-    https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
-
 # Обучение
 
     cd sub_modules/tesstrain/
@@ -88,3 +85,9 @@
 После переобучения закинуть сюда
 
     /usr/share/tesseract-ocr/5/tessdata
+
+# Полезные ссылки
+### Обучение:
+https://habr.com/ru/companies/rosatom/articles/669020/ 
+<br>
+https://www.youtube.com/watch?v=KE4xEzFGSU8&ab_channel=GabrielGarcia
