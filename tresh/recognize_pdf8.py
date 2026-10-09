@@ -253,7 +253,7 @@ def print_blocks_summary(text_blocks, main_blocks, image_width):
         print(f"{i+1:2d}. Позиция: ({x:4d}, {y:4d}) Размер: {w:4d}x{h:4d}")
 
 # Пример использования
-path = '/home/user/rep/teach_tesserasseract/pdf/processed/КЛАБ.302231.008СБ_180567923.dwg.pdf'
+path = '/home/icebook7/rep/teach_tesserasseract/pdf/РНАТ.713141.724_182778663.dwg.pdf'
 image = extract_image(path, 0)
 
 print("=== ПРОСТОЕ РАСПОЗНАВАНИЕ ТЕКСТА ПО БЛОКАМ ===")

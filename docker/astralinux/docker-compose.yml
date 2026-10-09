@@ -3,35 +3,35 @@ version: "3.8"
 services:
   ocr_app:
     build:
-    # Контекст сборки – корень проекта (root)
       context: ../../
       dockerfile: docker/astralinux/Dockerfile
-      #image: delagreenpromo/astralinux_ocr_app:latest
-      #image: astralinux_ocr_app:latest
     container_name: astralinux_ocr_app
     user: "${UID}:${GID}"
-    # (опционально) устанавливаем рабочую директорию внутри контейнера
     working_dir: /app
     env_file:
       - ../../.env
     environment:
-    #Показываем пограмме какую папку обрабатывать
       - MONITORED_DIR=/app/pdf
-      #- UID=${UID}
-      #- GID=${GID}
     volumes:
-      # Файл конфигурации, доступный только для чтения
+      # Монтируем файлы приложения
+      #- ../../app.py:/app/app.py
+      #- ../../logger.py:/app/logger.py
+      #- ../../config.ini:/app/config.ini
+      
+      # Каталог для мониторинга PDF
       - type: bind
-        source: ../../config.ini
-        target: /app/config.ini
-        read_only: true
-      # Каталог для мониторинга, с использованием переменной окружения
-      - type: bind
-        source: ${HOST_MONITORED_DIR:-../pdf}         #Хост
-        target: ${CONTAINER_MONITORED_DIR:-/app/pdf}  #Контейнер
+        source: ${HOST_MONITORED_DIR:-../pdf}
+        target: ${CONTAINER_MONITORED_DIR:-/app/pdf}
         consistency: consistent
+      
+      # Директории для результатов обработки
+      #- ../../results:/app/results
+      #- ../../tresh:/app/tresh
+      #- ../../processed:/app/processed
+      
       # Монтирование настроек времени
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+      
     network_mode: host
     restart: unless-stopped

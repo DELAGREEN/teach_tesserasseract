@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from pdf2image import convert_from_bytes
 from pytesseract import Output
 from logger import logger
+from pdf_processors import PdfProcessingFactory, TokenStorage
 
 # ----------------------- Загрузка переменных окружения -----------------------
 load_dotenv()
@@ -48,7 +49,8 @@ EXCLUDE_KEYWORDS = [kw.strip() for kw in config.get("Exclusion", "exclude_keywor
 
 # Создаем необходимые папки
 os.makedirs(RESULTS_DIR, exist_ok=True)
-
+TOKEN_DB_PATH = os.path.join(RESULTS_DIR, "unique_tokens.db")
+token_storage = TokenStorage(db_path=TOKEN_DB_PATH)
 
 # ----------------------- API КЛИЕНТ -----------------------
 class APIClient:
@@ -491,36 +493,27 @@ def convert_pdf_to_text_advanced(image):
 
 def process_pdf_bytes(pdf_bytes, source_info=""):
     """
-    Обработка PDF из байтов
+    Обработка PDF из байтов.
+    Выбор процессора выполняется полиморфно по имени файла.
     """
-    logger.info(f"Начало обработки PDF: {source_info}")
+    source_name = str(source_info or "document.pdf")
+    logger.info(f"Начало обработки PDF: {source_name}")
 
-    img = extract_image_from_pdf_bytes(pdf_bytes)
-    if img is None:
-        logger.error("Не удалось извлечь изображение из PDF")
+    processor = PdfProcessingFactory.create(source_name, token_storage=token_storage)
+    result = processor.process(pdf_bytes, source_name=source_name)
+
+    if not isinstance(result, dict):
         return None, None
 
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    text_data, full_text, result_image = convert_pdf_to_text_advanced(img_rgb)
+    text_data = result.get("blocks_data") or result.get("all_text_data") or {}
+    full_text = result.get("text") or ""
 
     if full_text and text_data:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Сохраняем текстовый файл
         text_filename = os.path.join(RESULTS_DIR, f"document_{timestamp}.txt")
         with open(text_filename, "w", encoding="utf-8") as f:
             f.write(full_text)
         logger.info(f"Сохранен текстовый файл: {text_filename}")
-
-        if SAVE_IMAGES and result_image is not None:
-            outlined_filename = os.path.join(
-                RESULTS_DIR, f"document_{timestamp}_blocks_outlined.jpg"
-            )
-            cv2.imwrite(
-                outlined_filename, cv2.cvtColor(result_image, cv2.COLOR_RGB2BGR)
-            )
-            logger.info(f"Сохранено изображение с обводкой блоков: {outlined_filename}")
 
     return text_data, full_text
 
