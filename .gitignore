@@ -14,3 +14,4 @@ test_server/pdf_storage/*
 !pdf/processed/
 !pdf/results/
 !pdf/tresh/
+.vscode
