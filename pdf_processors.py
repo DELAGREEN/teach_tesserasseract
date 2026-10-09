@@ -80,13 +80,13 @@ class TokenStorage:
     def _normalize_token(token):
         if token is None:
             return ""
-        return str(token).replace("\xa0", " ").strip()
+        return str(token).replace(" ", " ").strip()
 
     @staticmethod
     def _tokenize_block_text(text):
         if text is None:
             return []
-        normalized = str(text).replace("\xa0", " ")
+        normalized = str(text).replace(" ", " ")
         return [tok for tok in normalized.split() if tok.strip()]
 
     def store_block_tokens(self, block_text, source_file=""):
@@ -242,52 +242,166 @@ class TextLayerPdfProcessor(BasePdfProcessor):
         return text.strip()
 
     @staticmethod
-    def _looks_like_requirement_block(text):
-        t = text.strip()
-        if not t:
-            return False
-        upper = t.upper()
-        if any(token in upper for token in ("ЛИСТ", "ПОДП.", "ДАТА", "РАЗРАБ.", "ПРОВ.", "УТВ.")):
-            return False
-        if any(token in upper for token in ("СЕРТИФИКАТ", "ЭЦП", "ПОДПИСАН")):
-            return False
-        if re.match(r"^\d{1,2}[\s\.)-]+", t):
+    def _is_noise_line(line):
+        text = re.sub(r"\s+", " ", str(line or "")).strip()
+        if not text:
             return True
-        if any(word in upper for word in TextLayerPdfProcessor.STRONG_KEYWORDS):
+        upper = text.upper()
+        if len(text) < 3:
             return True
-        return len(t) >= 22 and re.search(r"\d", t) is not None
+        if any(token in upper for token in (
+            "ДОКУМЕНТ ПОДПИСАН",
+            "СЕРТИФИКАТ",
+            "ЭЦП",
+            "ВЛАДЕЛЕЦ ПОДПИСИ",
+            "ДЕЙСТВИТЕЛЬНО С",
+            "КОПИРОВАЛ",
+            "ФОРМАТ",
+            "CRC",
+            "ID ВЕРСИИ",
+            "ИНФОРМАЦИЯ",
+            "ПОДТ.",
+            "РАЗРАБ.",
+            "ПРОВ.",
+            "Н.КОНТР.",
+            "Т.КОНТР.",
+            "ИЗМ.",
+            "ЛИСТ",
+            "ПОДП.",
+            "ДАТА",
+        )):
+            return True
+        if upper.startswith("A4") or upper.startswith("A3") or upper.startswith("A5"):
+            return True
+        if re.fullmatch(r"[0-9A-F]{8,}", upper):
+            return True
+        if re.fullmatch(r"[\W_]+", text):
+            return True
+        if re.fullmatch(r"[-=|/\\]+", text):
+            return True
+        if re.fullmatch(r"[A-ZА-ЯЁ]{1,3}", text):
+            return True
+        return False
 
-    def process(self, pdf_bytes, source_name=""):
+    @staticmethod
+    def _filter_requirement_lines(text):
+        raw_lines = str(text or "").replace("\r", "\n").split("\n")
+        kept = []
+        for raw in raw_lines:
+            candidate = re.sub(r"\s+", " ", raw).strip()
+            if not candidate:
+                continue
+            if TextLayerPdfProcessor._is_noise_line(candidate):
+                continue
+
+            upper = candidate.upper()
+            keyword_patterns = (
+                "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ", "ПОКРЫТИЕ", "РАДИУС", "ДИАМЕТР",
+                "ШЕРОХОВАТОСТЬ", "СВАРКА", "РЕЗЬБА", "ПРИМЕЧАНИЕ", "ФОСФОР",
+                "МЕДЬ", "ДОЛЯ", "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "МАРКИРОВАТЬ", "МАССОВОЙ",
+                "МАССОВАЯ", "ПОСТАВЛЯТЬСЯ", "ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ",
+                "ДОПУСКАЕТСЯ", "СКОБКАХ", "ШРИФТОМ", "СБОРКЕ", "СБОРКИ"
+            )
+            has_requirement_keyword = any(re.search(rf"\b{re.escape(keyword)}\b", upper) is not None for keyword in keyword_patterns)
+            has_numeric = any(ch.isdigit() for ch in candidate)
+            has_letters = any(ch.isalpha() for ch in candidate)
+
+            numbered_match = re.match(r"^(?:[-*•\s]*)(?P<num>\d{1,2})\s*(?:[\.\)\-]|[*•])?\s*(?P<body>.+)$", candidate)
+            if numbered_match:
+                body = (numbered_match.group("body") or "").strip()
+                if not body:
+                    continue
+                short_numbered_noise = (
+                    len(body) <= 18
+                    and not has_requirement_keyword
+                    and not re.search(r"[A-Za-zА-ЯЁ]{4,}", body)
+                )
+                if short_numbered_noise:
+                    continue
+                kept.append(candidate)
+                continue
+
+            last_kept = kept[-1] if kept else ""
+            previous_numbered = bool(re.match(r"^\d", last_kept))
+            reference_prefixes = ("ГОСТ ", "ОСТ ", "ТУ ", "СТАЛЬ ", "МАТЕРИАЛ ", "CRC", "A4", "A3", "A5", "ID ВЕРСИИ")
+            reference_like = candidate.upper().startswith(reference_prefixes)
+            continuation = (
+                bool(kept)
+                and previous_numbered
+                and not re.match(r"^\d", candidate)
+                and not reference_like
+                and not TextLayerPdfProcessor._is_noise_line(candidate)
+            )
+            if continuation:
+                kept.append(candidate)
+                continue
+            if re.match(r"^(?:СТАЛЬ|МАТЕРИАЛ)\b", candidate, flags=re.IGNORECASE):
+                continue
+
+            if not (has_letters and has_numeric):
+                continue
+
+            strong_requirement_markers = (
+                "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "ДОПУСКАЕТСЯ", "МАРКИРОВАТЬ",
+                "РАЗМЕРЫ", "РАЗМЕР", "РАДИУС", "ДОПУСКИ", "ДОПУСК",
+                "ПРИМЕЧАНИЕ", "ПОСТАВЛЯТЬСЯ", "ЗАМЕНИТЕЛЬ", "СБОРКЕ",
+                "СБОРКИ", "ОБЕСПЕЧ", "ОБЩИЕ", "МАТЕРИАЛ-ЗАМЕНИТЕЛЬ"
+            )
+            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)
+            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:
+                continue
+
+            if has_requirement_keyword or len(candidate) >= 25:
+                kept.append(candidate)
+
+        return "\n".join(kept)
+
+    @staticmethod
+    def _looks_like_requirement_block(text):
+        if not text:
+            return False
+        cleaned = TextLayerPdfProcessor._filter_requirement_lines(text)
+        return bool(cleaned)
+    @staticmethod
+    def _looks_like_requirement_block(text):
+        if not text:
+            return False
+        cleaned = TextLayerPdfProcessor._filter_requirement_lines(text)
+        return bool(cleaned)
+
+    def process(self, pdf_bytes, source_name=''):
         if fitz is None:
-            raise RuntimeError("PyMuPDF (fitz) не установлен. Невозможно использовать текстовый слой.")
+            raise RuntimeError('PyMuPDF (fitz) не установлен. Невозможно использовать текстовый слой.')
 
         logger.info(f"TextLayerPdfProcessor: обработка файла {source_name or 'без имени'}")
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        doc = fitz.open(stream=pdf_bytes, filetype='pdf')
         blocks = []
         seen = set()
 
         try:
             for page in doc:
-                for block in page.get_text("blocks"):
+                for block in page.get_text('blocks'):
                     text = self._normalize_block_text(block[4])
                     if not text:
                         continue
-                    if not self._looks_like_requirement_block(text):
+                    cleaned_lines = self._filter_requirement_lines(text)
+                    if not cleaned_lines:
                         continue
-                    line_key = text.lower().strip()
-                    if line_key in seen:
-                        continue
-                    seen.add(line_key)
-                    blocks.append(text)
-                    self._store_block_text(text, source_name)
+                    for line in cleaned_lines.split("\n"):
+                        normalized = re.sub(r"\s+", " ", line).strip()
+                        if not normalized or normalized.lower() in seen:
+                            continue
+                        seen.add(normalized.lower())
+                        blocks.append(normalized)
+                        self._store_block_text(normalized, source_name)
         finally:
             doc.close()
 
         full_text = "\n\n".join(blocks)
         return {
-            "text": full_text,
-            "blocks": blocks,
-            "blocks_data": {f"block_{idx + 1}": {"text": block, "source": source_name} for idx, block in enumerate(blocks)},
+            'text': full_text,
+            'blocks': blocks,
+            'blocks_data': {f'block_{idx + 1}': {'text': block, 'source': source_name} for idx, block in enumerate(blocks)},
         }
 
 
@@ -296,7 +410,7 @@ class PdfProcessingFactory:
 
     @staticmethod
     def create(file_name, token_storage=None):
-        normalized = str(file_name or "").lower()
+        normalized = str(file_name or '').lower()
         if OCRPdfProcessor.supports(normalized):
             return OCRPdfProcessor(token_storage=token_storage)
         if TextLayerPdfProcessor.supports(normalized):
@@ -307,9 +421,9 @@ class PdfProcessingFactory:
 
 
 __all__ = [
-    "BasePdfProcessor",
-    "OCRPdfProcessor",
-    "TextLayerPdfProcessor",
-    "PdfProcessingFactory",
-    "TokenStorage",
+    'BasePdfProcessor',
+    'OCRPdfProcessor',
+    'TextLayerPdfProcessor',
+    'PdfProcessingFactory',
+    'TokenStorage',
 ]
