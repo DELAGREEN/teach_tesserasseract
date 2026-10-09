@@ -249,6 +249,10 @@ class TextLayerPdfProcessor(BasePdfProcessor):
         upper = text.upper()
         if len(text) < 3:
             return True
+        if "СТЕКЛОТЕКСТОЛИТ" in upper and "МАРКИ" in upper:
+            return True
+        if upper.startswith("СТЕКЛОТЕКСТОЛИТ"):
+            return True
         if any(token in upper for token in (
             "ДОКУМЕНТ ПОДПИСАН",
             "СЕРТИФИКАТ",
@@ -291,10 +295,11 @@ class TextLayerPdfProcessor(BasePdfProcessor):
             candidate = re.sub(r"\s+", " ", raw).strip()
             if not candidate:
                 continue
+            upper = candidate.upper()
+            if upper.startswith("СТЕКЛОТЕКСТОЛИТ") or ("СТЕКЛОТЕКСТОЛИТ" in upper and "МАРКИ" in upper):
+                continue
             if TextLayerPdfProcessor._is_noise_line(candidate):
                 continue
-
-            upper = candidate.upper()
             keyword_patterns = (
                 "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ", "ПОКРЫТИЕ", "РАДИУС", "ДИАМЕТР",
                 "ШЕРОХОВАТОСТЬ", "СВАРКА", "РЕЗЬБА", "ПРИМЕЧАНИЕ", "ФОСФОР",

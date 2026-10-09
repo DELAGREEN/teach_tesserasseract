@@ -59,7 +59,7 @@ class PdfProcessingTests(unittest.TestCase):
         self.assertNotIn("20h14", cleaned)
         self.assertNotIn("2 отв. Ç2H14", cleaned)
         self.assertNotIn("4 радиуса", cleaned)
-        self.assertIn("Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0", cleaned)
+        self.assertNotIn("Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0", cleaned)
         self.assertIn("1 Радиусы внутренних скруглений не более 0,4 мм.", cleaned)
         self.assertIn("3 Маркировать обозначение изделия по основному конструкторскому документу на", cleaned)
 

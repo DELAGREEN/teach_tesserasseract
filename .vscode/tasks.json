@@ -1008,6 +1008,78 @@
 			"command": "bash -lc 'cd /home/icebook7/rep/teach_tesserasseract && git status --short && git add -A && git commit -m \"WIP: admin panel fix and initial PDF processing\" && git status --short'",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Reproduce the material descriptor false positive with the current restored code",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. python - <<'PY'\nfrom pdf_processors import TextLayerPdfProcessor\nsample = \"\"\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\n\n1 Радиусы внутренних скруглений не более 0,4 мм.\n\n2 * Размер для справок.\n\n3 Маркировать обозначение изделия по основному конструкторскому документу на\n\nбирке.\n\"\"\"\nprint(TextLayerPdfProcessor._filter_requirement_lines(sample))\nprint('---')\nprint(TextLayerPdfProcessor._is_noise_line('Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0'))\nPY",
+			"isBackground": false
+		},
+		{
+			"label": "Inspect the exact noise filter and requirement filter in current restored file",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && nl -ba pdf_processors.py | sed -n '220,380p'",
+			"isBackground": false
+		},
+		{
+			"label": "Read current test file and exact relevant assertions before patch",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && nl -ba tests/test_pdf_processing.py | sed -n '1,120p'",
+			"isBackground": false
+		},
+		{
+			"label": "Fix the exact false positive and correct the regression test to reject material descriptor lines",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('/home/icebook7/rep/teach_tesserasseract/pdf_processors.py')\ntext = p.read_text(encoding='utf-8')\nold = '''        if any(token in upper for token in (\n              \"ДОКУМЕНТ ПОДПИСАН\",\n              \"СЕРТИФИКАТ\",\n              \"ЭЦП\",\n              \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n              \"ДЕЙСТВИТЕЛЬНО С\",\n              \"КОПИРОВАЛ\",\n              \"ФОРМАТ\",\n              \"CRC\",\n              \"ID ВЕРСИИ\",\n              \"ИНФОРМАЦИЯ\",\n              \"ПОДТ.\",\n              \"РАЗРАБ.\",\n              \"ПРОВ.\",\n              \"Н.КОНТР.\",\n              \"Т.КОНТР.\",\n              \"ИЗМ.\",\n              \"ЛИСТ\",\n              \"ПОДП.\",\n              \"ДАТА\",\n          )):\n              return True\n          if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n'''\nnew = '''        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n              return True\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n              return True\n        if any(token in upper for token in (\n              \"ДОКУМЕНТ ПОДПИСАН\",\n              \"СЕРТИФИКАТ\",\n              \"ЭЦП\",\n              \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n              \"ДЕЙСТВИТЕЛЬНО С\",\n              \"КОПИРОВАЛ\",\n              \"ФОРМАТ\",\n              \"CRC\",\n              \"ID ВЕРСИИ\",\n              \"ИНФОРМАЦИЯ\",\n              \"ПОДТ.\",\n              \"РАЗРАБ.\",\n              \"ПРОВ.\",\n              \"Н.КОНТР.\",\n              \"Т.КОНТР.\",\n              \"ИЗМ.\",\n              \"ЛИСТ\",\n              \"ПОДП.\",\n              \"ДАТА\",\n          )):\n              return True\n        if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n'''\nif old not in text:\n    raise SystemExit('target block not found in pdf_processors.py')\ntext = text.replace(old, new)\n\n# reject material descriptor lines explicitly in filter stage too\ntext = text.replace(\n'''              if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                  continue\n''',\n'''              if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n                  continue\n              if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n                  continue\n              if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                  continue\n''')\n\np.write_text(text, encoding='utf-8')\n\n# correct the regression test to match real business rule\npath = Path('/home/icebook7/rep/teach_tesserasseract/tests/test_pdf_processing.py')\ntext2 = path.read_text(encoding='utf-8')\ntext2 = text2.replace('          self.assertIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)', '          self.assertNotIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)')\npath.write_text(text2, encoding='utf-8')\nprint('patched false-positive filter and corrected regression expectation')\nPY\ncd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. python -m py_compile pdf_processors.py && PYTHONPATH=. pytest -q tests/test_pdf_processing.py tests/test_admin_app.py",
+			"isBackground": false
+		},
+		{
+			"label": "Confirm final filter state for material descriptor rejection in the file and test suite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && printf '%s\\n' '--- pdf_processors.py ---' && nl -ba pdf_processors.py | sed -n '240,330p' && printf '%s\\n' '--- tests/test_pdf_processing.py ---' && nl -ba tests/test_pdf_processing.py | sed -n '40,70p' && printf '%s\\n' '--- direct reproduction ---' && PYTHONPATH=. python - <<'PY'\nfrom pdf_processors import TextLayerPdfProcessor\nsample = \"\"\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\n\n1 Радиусы внутренних скруглений не более 0,4 мм.\n\n2 * Размер для справок.\n\n3 Маркировать обозначение изделия по основному конструкторскому документу на\n\nбирке.\n\"\"\"\nprint(TextLayerPdfProcessor._filter_requirement_lines(sample))\nprint('NOISE?', TextLayerPdfProcessor._is_noise_line('Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0'))\nPY",
+			"isBackground": false
+		},
+		{
+			"label": "Inject the real material-descriptor rejection at the exact noise and filter points, and update the regression test to assert the correct behavior",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\n\n# Patch pdf_processors.py\npdf_path = Path('/home/icebook7/rep/teach_tesserasseract/pdf_processors.py')\ntext = pdf_path.read_text(encoding='utf-8')\nneedle = '        if any(token in upper for token in ('\nidx = text.index(needle, text.index('if len(text) < 3:'))\ninsert = '''        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\\n            return True\\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\\n            return True\\n'''\ntext = text[:idx] + insert + text[idx:]\npdf_path.write_text(text, encoding='utf-8')\n\n# Patch filter stage to reject the same descriptor line before it can be kept\ntext = pdf_path.read_text(encoding='utf-8')\nold = '''            if not candidate:\\n                continue\\n            if TextLayerPdfProcessor._is_noise_line(candidate):\\n                continue\\n\\n            upper = candidate.upper()\\n'''\nnew = '''            if not candidate:\\n                continue\\n            upper = candidate.upper()\\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\\n                continue\\n            if TextLayerPdfProcessor._is_noise_line(candidate):\\n                continue\\n'''\nif old not in text:\n    raise SystemExit('filter-stage anchor not found')\ntext = text.replace(old, new)\npdf_path.write_text(text, encoding='utf-8')\n\n# Patch regression tests to expect the descriptor line to be rejected\nfor filename in ['/home/icebook7/rep/teach_tesserasseract/tests/test_pdf_processing.py']:\n    p = Path(filename)\n    s = p.read_text(encoding='utf-8')\n    old = '          self.assertIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\n    new = '          self.assertNotIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\n    if old in s:\n        s = s.replace(old, new)\n    p.write_text(s, encoding='utf-8')\n\nprint('patched exact false-positive logic and corrected regression test')\nPY\ncd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. pytest -q tests/test_pdf_processing.py tests/test_admin_app.py",
+			"isBackground": false
+		},
+		{
+			"label": "Verify the material descriptor fix and regression suite with explicit exit code",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. pytest -q tests/test_pdf_processing.py tests/test_admin_app.py > /tmp/verify_fix.txt 2>&1; status=$?; tail -n 40 /tmp/verify_fix.txt; echo EXIT:$status",
+			"isBackground": false
+		},
+		{
+			"label": "Inspect the exact patched regions in pdf_processors.py and the remaining wrong assertion in the test file",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && printf '%s\\n' '--- filter block ---' && nl -ba pdf_processors.py | sed -n '244,320p' && printf '%s\\n' '--- test block ---' && nl -ba tests/test_pdf_processing.py | sed -n '46,66p'",
+			"isBackground": false
+		},
+		{
+			"label": "Set the regression expectation to the real business rule: reject material descriptor lines while keeping numbered requirements",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('/home/icebook7/rep/teach_tesserasseract/tests/test_pdf_processing.py')\ns = p.read_text(encoding='utf-8')\nold = '          self.assertIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\nnew = '          self.assertNotIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\nif old not in s:\n    raise SystemExit('target assertion not found in test file')\ns = s.replace(old, new)\np.write_text(s, encoding='utf-8')\nprint('updated test assertion to reject noisy descriptor line')\nPY\ncd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. python - <<'PY'\nfrom pdf_processors import TextLayerPdfProcessor\nsample = \"\"\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\n\n1 Радиусы внутренних скруглений не более 0,4 мм.\n\n2 * Размер для справок.\n\n3 Маркировать обозначение изделия по основному конструкторскому документу на\n\nбирке.\n\"\"\"\nprint(TextLayerPdfProcessor._filter_requirement_lines(sample))\nprint('NOISE?', TextLayerPdfProcessor._is_noise_line('Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0'))\nPY\nPYTHONPATH=. pytest -q tests/test_pdf_processing.py tests/test_admin_app.py > /tmp/verify_fix.txt 2>&1; status=$?; tail -n 40 /tmp/verify_fix.txt; echo EXIT:$status",
+			"isBackground": false
+		},
+		{
+			"label": "Replace the remaining stale assertion by matching the exact assertion string without indentation dependency",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('/home/icebook7/rep/teach_tesserasseract/tests/test_pdf_processing.py')\ns = p.read_text(encoding='utf-8')\nold = 'self.assertIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\nnew = 'self.assertNotIn(\"Стеклотекстолит марки СТЭФ-У (тип 221) Вс-1,0\", cleaned)'\nif old not in s:\n    raise SystemExit('old assertion text not found in test file')\ntext = s.replace(old, new)\np.write_text(text, encoding='utf-8')\nprint('assertion corrected')\nPY\ncd /home/icebook7/rep/teach_tesserasseract && PYTHONPATH=. pytest -q tests/test_pdf_processing.py tests/test_admin_app.py > /tmp/verify_fix.txt 2>&1; status=$?; tail -n 40 /tmp/verify_fix.txt; echo EXIT:$status",
+			"isBackground": false
+		},
+		{
+			"label": "Check git status before committing",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && git status --short --branch && echo '---' && git remote -v",
+			"isBackground": false
+		},
+		{
+			"label": "Commit current project changes and push to origin/dev",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && git add . && git commit -m \"Fix material descriptor noise filtering and regression tests\" && git push origin dev",
+			"isBackground": false
 		}
 	]
 }
