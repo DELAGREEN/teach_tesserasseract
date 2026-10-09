@@ -35,19 +35,17 @@ RUN python3 -m venv venv && \
     venv/bin/python -m pip install --upgrade pip && \
     venv/bin/pip install --no-cache-dir -r requirements.txt
 
+# Копируем остальные файлы
+COPY  --chown=appuser:appuser app.py .
+COPY  --chown=appuser:appuser logger.py .
+COPY  --chown=appuser:appuser config.ini .
+#COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
+
 # Создаем файл лога (теперь у appuser есть права на запись)
-RUN touch /app/log.log && chmod 666 /app/log.log
+#RUN touch /app/logs.log && chmod 666 /app/logs.log
 
 # Меняем владельца всей директории /app на appuser
-#RUN chown -R appuser:appuser /app
-RUN chmod -R a+rw /app
-
-# Копируем остальные файлы
-COPY  api_client.py .
-COPY ocr_processor.py .
-COPY  logger.py .
-COPY  main.py .
-#COPY sub_modules/tesstrain/data/rus/rus.lstm /usr/share/tesseract-ocr/5/tessdata
+RUN chmod -R a+rwx /app && chown -R appuser:appuser /app
 
 #Переключаемся на пользователя
 USER appuser

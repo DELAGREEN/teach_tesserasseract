@@ -3,15 +3,11 @@ version: "3.8"
 services:
   ocr_app:
     build:
-    # Контекст сборки – корень проекта (root)
       context: ../../
       dockerfile: docker/astralinux/Dockerfile
-      #image: delagreenpromo/astralinux_ocr_app:latest
-      #image: astralinux_ocr_app:latest
     container_name: astralinux_ocr_app
     mem_limit: 2g
     user: "${UID}:${GID}"
-    # (опционально) устанавливаем рабочую директорию внутри контейнера
     working_dir: /app
     env_file:
       - ../../.env
@@ -59,7 +55,12 @@ services:
       #Exclusion
       #- OCR_EXCLUDE_KEYWORDS =
     volumes:
-      # Файл конфигурации, доступный только для чтения
+      # Монтируем файлы приложения
+      #- ../../app.py:/app/app.py
+      #- ../../logger.py:/app/logger.py
+      #- ../../config.ini:/app/config.ini
+      
+      # Каталог для мониторинга PDF
       - type: bind
         source: ../../config.ini
         target: /app/config.ini
@@ -71,5 +72,6 @@ services:
       # Монтирование настроек времени
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+      
     network_mode: host
     restart: unless-stopped
