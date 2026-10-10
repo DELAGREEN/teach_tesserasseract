@@ -349,12 +349,22 @@ class TextLayerPdfProcessor(BasePdfProcessor):
         return text.strip()
 
     @staticmethod
+    def _is_material_descriptor(line):
+        normalized = re.sub(r"\s+", " ", str(line or "")).strip()
+        if not normalized:
+            return False
+        pattern = r"^(?:\d{1,2}\s*(?:[\.\)\-]|[*•])?\s*)?(?:МАТЕРИАЛ(?:-ЗАМЕНИТЕЛЬ)?|МАТЕРИАЛЫ?)\s*[:\-]"
+        return bool(re.match(pattern, normalized, flags=re.IGNORECASE))
+
+    @staticmethod
     def _is_noise_line(line):
         text = re.sub(r"\s+", " ", str(line or "")).strip()
         if not text:
             return True
         upper = text.upper()
         if len(text) < 3:
+            return True
+        if TextLayerPdfProcessor._is_material_descriptor(text):
             return True
         requirement_like = bool(re.search(r"(?<!\w)\d{1,2}\s*(?:[\.\)\-]|[*•])?\s*[A-ZА-ЯЁ]", text, flags=re.IGNORECASE))
         if requirement_like and any(token in upper for token in ("СВАРК", "ВЫПОЛНИТЬ", "ПОКРЫТИЕ", "КОНТРОЛЬ", "ДОПУСК", "РАЗМЕР", "ПРОХОЖДЕНИЕ", "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ")):
@@ -453,6 +463,8 @@ class TextLayerPdfProcessor(BasePdfProcessor):
             if upper.startswith("СТЕКЛОТЕКСТОЛИТ") or ("СТЕКЛОТЕКСТОЛИТ" in upper and "МАРКИ" in upper):
                 continue
             if TextLayerPdfProcessor._is_noise_line(candidate):
+                continue
+            if TextLayerPdfProcessor._is_material_descriptor(candidate):
                 continue
             if any(token in upper for token in metadata_tokens):
                 continue

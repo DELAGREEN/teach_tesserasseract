@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-from admin_app import get_admin_credentials, get_unique_token_stats, process_uploaded_pdf
+from admin_app import build_requirement_preview_html, get_admin_credentials, get_unique_token_stats, process_uploaded_pdf, render_test_page
 
 
 class AdminAppTests(unittest.TestCase):
@@ -36,6 +36,30 @@ class AdminAppTests(unittest.TestCase):
             stats = get_unique_token_stats(db_path)
             self.assertEqual(stats["total_unique_tokens"], 2)
             self.assertIn("ГОСТ", [row["token"] for row in stats["tokens"]])
+
+
+    def test_render_test_page_includes_preview_and_fullscreen_modal(self):
+        result = {
+            "text": "1 Требование\n2 Требование два",
+            "blocks": [
+                {"text": "1 Требование", "source": "sample.pdf"},
+                {"text": "2 Требование два", "source": "sample.pdf"},
+            ],
+        }
+        html = render_test_page(result=result)
+        body = html.body.decode() if hasattr(html.body, "decode") else str(html.body)
+        self.assertIn("thumbnail-preview", body)
+        self.assertIn("fullscreen-preview", body)
+        self.assertIn("requirement-box", body)
+
+    def test_build_requirement_preview_uses_pdf_render_data(self):
+        preview = build_requirement_preview_html(
+            preview_data_url="data:image/png;base64,AAA",
+            blocks=[{"text": "Блок 1"}, {"text": "Блок 2"}],
+        )
+        self.assertIn("thumbnail-preview", preview)
+        self.assertIn("requirement-box", preview)
+        self.assertIn("fullscreen-preview", preview)
 
     def test_process_uploaded_pdf_accepts_async_upload_file(self):
         class DummyUploadFile:

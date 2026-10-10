@@ -141,6 +141,16 @@ class PdfProcessingTests(unittest.TestCase):
         self.assertFalse(any("Лист" in block for block in blocks))
         self.assertFalse(any("Формат" in block for block in blocks))
 
+    def test_text_layer_rejects_material_descriptors(self):
+          raw = """1 СВарку Выполнить по требованиям ОСТ 5Р.9653-2015.
+  1 Материал: сталь 09Г2С и детали должны соответствовать ГОСТ 19281.
+  2 Покрытие: эмаль ПФ-115 (2) не менее 0,1 мм.
+  """
+          cleaned = TextLayerPdfProcessor._filter_requirement_lines(raw)
+          self.assertIn("1 СВарку Выполнить", cleaned)
+          self.assertIn("2 Покрытие: эмаль ПФ-115", cleaned)
+          self.assertNotIn("1 Материал: сталь 09Г2С", cleaned)
+
     def test_text_layer_filters_noise(self):
         raw = """Документ подписан усиленной квалифицированной ЭЦП
 Сертификат : 03с35176006Бае7544ас4 066969 013а

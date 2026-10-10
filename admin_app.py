@@ -1,7 +1,14 @@
+import base64
 import os
 import sqlite3
+from html import escape
 from pathlib import Path as FilePath
 from typing import Any
+
+try:
+    import fitz
+except Exception:  # pragma: no cover
+    fitz = None
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -49,6 +56,115 @@ def get_unique_token_stats(db_path=None):
     return stats
 
 
+def build_requirement_preview_html(preview_data_url: str | None = None, blocks: list | None = None) -> str:
+    blocks = blocks or []
+    preview_data_url = preview_data_url or ""
+
+    if not preview_data_url:
+        preview_data_url = (
+            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='700' %3E"
+            "%3Crect width='100%25' height='100%25' fill='%23f8fafc'/%3E%3Ctext x='50%25' y='50%25' "
+            "dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='32' fill='%230f172a'%3E"
+            "Preview unavailable%3C/text%3E%3C/svg%3E"
+        )
+
+    overlay_boxes = []
+    for idx, block in enumerate(blocks[:12]):
+        if isinstance(block, dict):
+            value = str(block.get("text") or "").strip()
+        else:
+            value = str(block or "").strip()
+        label = escape(value[:60]) if value else f"Блок {idx + 1}"
+        left = 35
+        top = 60 + idx * 58
+        width = 68
+        height = 34
+        overlay_boxes.append(
+            f'<div class="requirement-box" style="left:{left}%; top:{top}px; width:{width}%; height:{height}px;">'
+            f'<span class="requirement-label">{label}</span></div>'
+        )
+
+    overlay_html = "".join(overlay_boxes)
+    return f'''
+        <div class="card preview-card">
+            <div class="preview-header">
+                <h3>Миниатюра чертежа</h3>
+                <button type="button" class="preview-button" onclick="toggleFullscreenPreview()">Открыть в полный экран</button>
+            </div>
+            <div class="thumbnail-shell">
+                <img class="thumbnail-preview" src="{preview_data_url}" alt="Preview of the drawing">
+                {overlay_html}
+            </div>
+        </div>
+        <div id="fullscreen-preview" class="fullscreen-preview" aria-hidden="true">
+            <div class="fullscreen-panel">
+                <div class="preview-header modal-header">
+                    <h3>Полный просмотр чертежа</h3>
+                    <button type="button" class="preview-button" onclick="toggleFullscreenPreview()">Закрыть</button>
+                </div>
+                <div class="thumbnail-shell fullscreen-shell">
+                    <img class="fullscreen-image" src="{preview_data_url}" alt="Full preview of the drawing">
+                    {overlay_html}
+                </div>
+            </div>
+        </div>
+        <script>
+            function toggleFullscreenPreview() {{
+                const modal = document.getElementById('fullscreen-preview');
+                if (!modal) return;
+                modal.classList.toggle('visible');
+                modal.setAttribute('aria-hidden', String(!modal.classList.contains('visible')));
+            }}
+        </script>
+    '''
+
+
+def render_pdf_preview(pdf_bytes: bytes, blocks: list | None = None) -> str:
+    if fitz is None:
+        return ""
+    try:
+        with fitz.open(stream=pdf_bytes, filetype='pdf') as doc:
+            if not doc or len(doc) == 0:
+                return ""
+            page = doc[0]
+            matrix = fitz.Matrix(0.6, 0.6)
+            pix = page.get_pixmap(matrix=matrix, alpha=False)
+            width = max(1, int(page.rect.width * 0.6))
+            height = max(1, int(page.rect.height * 0.6))
+            for idx, block in enumerate((blocks or [])[:12]):
+                if isinstance(block, dict):
+                    text_value = block.get("text")
+                else:
+                    text_value = block
+                if not str(text_value or "").strip():
+                    continue
+                x0 = 35
+                y0 = 55 + idx * 58
+                x1 = max(width - 30, x0 + 280)
+                y1 = min(height - 30, y0 + 42)
+                try:
+                    pix.draw_rect(fitz.Rect(x0, y0, x1, y1), color=(1, 0, 0), fill=None, overlay=True)
+                except Exception:
+                    pass
+            encoded = base64.b64encode(pix.tobytes("png")).decode("ascii")
+            return f"data:image/png;base64,{encoded}"
+    except Exception:
+        return ""
+
+
+def _preview_blocks(result: dict | None) -> list:
+    if not isinstance(result, dict):
+        return []
+    blocks = result.get("blocks") or []
+    normalized = []
+    for block in blocks:
+        if isinstance(block, dict):
+            normalized.append(block)
+        else:
+            normalized.append({"text": str(block)})
+    return normalized
+
+
 async def process_uploaded_pdf(file_storage):
     if file_storage is None or getattr(file_storage, "filename", "") == "":
         raise ValueError("Пожалуйста, выберите PDF-файл.")
@@ -75,7 +191,12 @@ async def process_uploaded_pdf(file_storage):
     if processor is None:
         file_type = filename.lower().split(".")[-2] if "." in filename.lower() else filename.lower()
         raise ValueError(f"Обработка файлов типа '{file_type}' отключена через ENV.")
-    return processor.process(pdf_bytes, source_name=filename)
+
+    result = processor.process(pdf_bytes, source_name=filename)
+    preview_data_url = render_pdf_preview(pdf_bytes, _preview_blocks(result))
+    if preview_data_url:
+        result["preview_data_url"] = preview_data_url
+    return result
 
 
 app = FastAPI(title="Teach Tesseract Admin")
@@ -125,7 +246,7 @@ def render_dashboard_page(stats: dict[str, Any]) -> HTMLResponse:
     rows = []
     for row in stats.get("tokens", []):
         rows.append(
-            f"<tr><td>{row.get('token', '-')}</td><td>{row.get('seen_count', 0)}</td><td>{row.get('source_file', '-')}</td><td>{row.get('last_seen_at', '-')}</td></tr>"
+            f"<tr><td>{escape(str(row.get('token', '-')))}</td><td>{row.get('seen_count', 0)}</td><td>{escape(str(row.get('source_file', '-')))}</td><td>{escape(str(row.get('last_seen_at', '-')))}</td></tr>"
         )
     if not rows:
         rows.append('<tr><td colspan="4">Пока нет накопленных токенов.</td></tr>')
@@ -187,11 +308,16 @@ def render_test_page(result: dict | None = None, error_message: str | None = Non
     if result is not None:
         text = str(result.get("text") or "Нет текста")
         blocks = result.get("blocks") or []
+        preview_html = build_requirement_preview_html(
+            preview_data_url=result.get("preview_data_url"),
+            blocks=_preview_blocks(result),
+        )
         result_html = f"""
             <div class="card">
                 <h3>Результат обработки</h3>
-                <pre>{text}</pre>
+                <pre>{escape(text)}</pre>
                 <p>Блоки: {len(blocks)}</p>
+                {preview_html}
             </div>
         """
     error_block = "" if not error_message else f'<div class="card error">{error_message}</div>'
@@ -212,6 +338,18 @@ def render_test_page(result: dict | None = None, error_message: str | None = Non
                 input[type=file] {{ padding: 10px; margin-top: 12px; }}
                 button {{ padding: 10px 20px; background: #0f172a; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 12px; }}
                 pre {{ white-space: pre-wrap; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; padding: 16px; overflow: auto; }}
+                .preview-card {{ position: relative; }}
+                .preview-header {{ display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }}
+                .thumbnail-shell {{ position: relative; display: inline-block; max-width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }}
+                .thumbnail-preview {{ display: block; max-width: 100%; height: auto; background: #fff; min-height: 240px; }}
+                .requirement-box {{ position: absolute; border: 3px solid rgba(239, 68, 68, 0.95); background: rgba(239, 68, 68, 0.08); border-radius: 10px; box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3); pointer-events: none; }}
+                .requirement-label {{ position: absolute; left: 8px; top: 6px; background: rgba(239, 68, 68, 0.9); color: white; border-radius: 999px; padding: 4px 8px; font-size: 11px; white-space: nowrap; }}
+                .preview-button {{ padding: 9px 14px; border: none; border-radius: 10px; background: #0f172a; color: white; cursor: pointer; }}
+                .fullscreen-preview {{ position: fixed; inset: 0; display: none; background: rgba(15, 23, 42, 0.8); padding: 24px; z-index: 1000; }}
+                .fullscreen-preview.visible {{ display: flex; justify-content: center; align-items: center; }}
+                .fullscreen-panel {{ position: relative; max-width: 90vw; max-height: 90vh; overflow: auto; background: white; border-radius: 16px; padding: 18px; box-shadow: 0 30px 60px rgba(0,0,0,0.35); }}
+                .fullscreen-image {{ max-width: 90vw; max-height: 75vh; display: block; border-radius: 12px; border: 1px solid #e2e8f0; }}
+                .modal-header {{ margin-bottom: 12px; }}
             </style>
         </head>
         <body>
