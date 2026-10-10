@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-from admin_app import build_requirement_preview_html, get_admin_credentials, get_unique_token_stats, process_uploaded_pdf, render_test_page
+from admin_app import build_requirement_preview_html, get_admin_credentials, get_unique_token_stats, process_uploaded_pdf, render_pdf_preview, render_test_page
 
 
 class AdminAppTests(unittest.TestCase):
@@ -60,6 +60,57 @@ class AdminAppTests(unittest.TestCase):
         self.assertIn("thumbnail-preview", preview)
         self.assertIn("requirement-box", preview)
         self.assertIn("fullscreen-preview", preview)
+
+    def test_render_pdf_preview_uses_block_bbox_metadata(self):
+        class FakePix:
+            def __init__(self):
+                self.calls = []
+
+            def draw_rect(self, rect, color=None, fill=None, overlay=None):
+                self.calls.append((rect, color, fill, overlay))
+
+            def tobytes(self, fmt):
+                return b"png-bytes"
+
+        class FakePage:
+            rect = type("Rect", (), {"width": 1000, "height": 800})()
+
+            def get_pixmap(self, matrix=None, alpha=None):
+                return FakePix()
+
+        class FakeDoc:
+            def __init__(self):
+                self.page = FakePage()
+
+            def __len__(self):
+                return 1
+
+            def __getitem__(self, idx):
+                return self.page
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        fake_pix = FakePix()
+        fake_doc = FakeDoc()
+        fake_doc.page.get_pixmap = lambda matrix=None, alpha=None: fake_pix
+
+        with patch("admin_app.fitz") as fitz_mock:
+            fitz_mock.open.return_value.__enter__.return_value = fake_doc
+            fitz_mock.Matrix.return_value = object()
+            fitz_mock.Rect = lambda x0, y0, x1, y1: type("Rect", (), {"x0": x0, "y0": y0, "x1": x1, "y1": y1})()
+
+            result = render_pdf_preview(b"fake-pdf", [{"text": "Требование", "bbox": {"x": 22, "y": 18, "w": 48, "h": 12}}])
+
+        self.assertTrue(result.startswith("data:image/png;base64,"))
+        self.assertTrue(len(fake_pix.calls) >= 1)
+        rect = fake_pix.calls[0][0]
+        self.assertGreater(rect.x0, 0)
+        self.assertGreater(rect.y0, 0)
+
 
     def test_process_uploaded_pdf_accepts_async_upload_file(self):
         class DummyUploadFile:

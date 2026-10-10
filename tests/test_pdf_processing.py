@@ -141,6 +141,20 @@ class PdfProcessingTests(unittest.TestCase):
         self.assertFalse(any("Лист" in block for block in blocks))
         self.assertFalse(any("Формат" in block for block in blocks))
 
+    def test_ocr_merges_continuation_rows_in_same_block(self):
+        sample = {
+            "text": ["1", "На", "изделии", "распространяются", "требования", "6", "бремени", "необходимого", "для"],
+            "conf": ["90", "90", "90", "90", "90", "90", "90", "90", "90"],
+            "left": [10, 50, 120, 220, 310, 10, 55, 150, 220],
+            "top": [10, 10, 10, 10, 10, 46, 46, 46, 46],
+            "width": [30, 80, 90, 110, 100, 30, 80, 120, 90],
+            "height": [12, 12, 12, 12, 12, 12, 12, 12, 12],
+        }
+        blocks = OCRPdfProcessor._extract_requirement_blocks(sample)
+        merged = "\n".join(blocks)
+        self.assertIn("1 На изделии распространяются требования", merged)
+        self.assertIn("бремени необходимого для", merged)
+
     def test_text_layer_rejects_material_descriptors(self):
           raw = """1 СВарку Выполнить по требованиям ОСТ 5Р.9653-2015.
   1 Материал: сталь 09Г2С и детали должны соответствовать ГОСТ 19281.
