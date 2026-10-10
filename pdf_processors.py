@@ -1,6 +1,8 @@
 import os
 import re
 import sqlite3
+
+from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 from datetime import datetime
 
@@ -419,16 +421,117 @@ class PdfProcessingFactory:
     """Фабрика процессоров для выбора реализации по имени файла."""
 
     @staticmethod
+    def _reload_env():
+        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        if os.path.exists(env_path):
+            load_dotenv(env_path, override=True)
+
+    @staticmethod
+    def _env_flag(name, default=True):
+        PdfProcessingFactory._reload_env()
+        raw_value = os.getenv(name)
+        if raw_value is None:
+            return default
+        return str(raw_value).strip().lower() not in {"0", "false", "no", "off", "disable", "disabled"}
+
+    @staticmethod
+    def _normalize_type_token(value):
+        token = str(value or "").strip().lower().replace("\\", "/")
+        token = token.split("#", 1)[0].strip()
+        token = token.replace(" ", "").replace("_", "")
+        token = token.strip(".")
+        return token
+    @classmethod
+    def _allowed_file_types(cls):
+        cls._reload_env()
+        allowed = set()
+        for env_name in ("ALLOWED_FILE_TYPES", "ALLOWED_PDF_TYPES", "FILE_TYPES_ALLOWED"):
+            raw_value = os.getenv(env_name)
+            if raw_value is None:
+                continue
+            for item in re.split(r"[,;\s]+", str(raw_value)):
+                token = cls._normalize_type_token(item)
+                if token:
+                    allowed.add(token)
+        return allowed
+
+    @classmethod
+    def _disabled_file_types(cls):
+        cls._reload_env()
+        disabled = set()
+        for env_name in ("DISABLED_FILE_TYPES", "DISABLED_PDF_TYPES", "DISABLED_TYPES", "FILE_TYPES_DISABLED"):
+            raw_value = os.getenv(env_name)
+            if raw_value is None:
+                continue
+            for item in re.split(r"[,;\s]+", str(raw_value)):
+                token = cls._normalize_type_token(item)
+                if token:
+                    disabled.add(token)
+        return disabled
+
+    @classmethod
+    def _file_type_tokens(cls, file_name):
+        normalized = str(file_name or "").lower()
+        tokens = set()
+        for suffix in (".dwg.pdf", ".cdw.pdf", ".cwd.pdf", ".dwg", ".cdw", ".cwd"):
+            if suffix in normalized:
+                tokens.update({
+                    cls._normalize_type_token(suffix),
+                    cls._normalize_type_token(suffix.lstrip(".")),
+                    cls._normalize_type_token(suffix.replace(".pdf", "")),
+                })
+                break
+        if not tokens:
+            return tokens
+        if ".dwg.pdf" in normalized or normalized.endswith(".dwg.pdf") or ".dwg" in normalized:
+            tokens.update({"dwg", "dwg.pdf"})
+        if ".cdw.pdf" in normalized or normalized.endswith(".cdw.pdf") or ".cdw" in normalized:
+            tokens.update({"cdw", "cdw.pdf"})
+        if ".cwd.pdf" in normalized or normalized.endswith(".cwd.pdf") or ".cwd" in normalized:
+            tokens.update({"cwd", "cwd.pdf"})
+        return tokens
+
+    @classmethod
+    def is_processing_enabled(cls, file_name):
+        cls._reload_env()
+        normalized = str(file_name or "").lower()
+        file_type_tokens = cls._file_type_tokens(normalized)
+        allowed_types = cls._allowed_file_types()
+        if allowed_types:
+            if not file_type_tokens:
+                return False
+            return bool(file_type_tokens & allowed_types)
+
+        disabled_types = cls._disabled_file_types()
+        if file_type_tokens and (file_type_tokens & disabled_types):
+            return False
+
+        if ".dwg.pdf" in normalized or normalized.endswith(".dwg.pdf") or ".dwg" in normalized:
+            return cls._env_flag("ENABLE_DWG_PDF_PROCESSING", True)
+        if ".cdw.pdf" in normalized or normalized.endswith(".cdw.pdf") or ".cdw" in normalized:
+            return cls._env_flag("ENABLE_CDW_PDF_PROCESSING", True)
+        if ".cwd.pdf" in normalized or normalized.endswith(".cwd.pdf") or ".cwd" in normalized:
+            return cls._env_flag("ENABLE_CWD_PDF_PROCESSING", True)
+        return cls._env_flag("ENABLE_UNKNOWN_PDF_PROCESSING", True)
+
+    @staticmethod
     def create(file_name, token_storage=None):
         normalized = str(file_name or '').lower()
         if OCRPdfProcessor.supports(normalized):
+            if not PdfProcessingFactory.is_processing_enabled(normalized):
+                return None
             return OCRPdfProcessor(token_storage=token_storage)
         if TextLayerPdfProcessor.supports(normalized):
+            if not PdfProcessingFactory.is_processing_enabled(normalized):
+                return None
             return TextLayerPdfProcessor(token_storage=token_storage)
         if fitz is not None:
+            if not PdfProcessingFactory.is_processing_enabled(normalized):
+                return None
             return TextLayerPdfProcessor(token_storage=token_storage)
+        if not PdfProcessingFactory.is_processing_enabled(normalized):
+            return None
         return OCRPdfProcessor(token_storage=token_storage)
-
 
 __all__ = [
     'BasePdfProcessor',

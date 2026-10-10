@@ -14,7 +14,7 @@ BASE_DIR = FilePath(__file__).resolve().parent
 
 
 def _reload_env():
-    load_dotenv(BASE_DIR / ".env", override=False)
+    load_dotenv(BASE_DIR / ".env", override=True)
 
 
 _reload_env()
@@ -72,6 +72,9 @@ async def process_uploaded_pdf(file_storage):
 
     storage = TokenStorage(db_path=get_token_db_path())
     processor = PdfProcessingFactory.create(filename, token_storage=storage)
+    if processor is None:
+        file_type = filename.lower().split(".")[-2] if "." in filename.lower() else filename.lower()
+        raise ValueError(f"Обработка файлов типа '{file_type}' отключена через ENV.")
     return processor.process(pdf_bytes, source_name=filename)
 
 
