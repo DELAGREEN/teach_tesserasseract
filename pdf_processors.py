@@ -86,8 +86,10 @@ class TokenStorage:
     def _tokenize_block_text(text):
         if text is None:
             return []
-        normalized = str(text).replace(" ", " ")
-        return [tok for tok in normalized.split() if tok.strip()]
+        normalized = str(text).replace("\xa0", " ").replace("\r\n", "\n").replace("\r", "\n").strip()
+        if not normalized:
+            return []
+        return [normalized]
 
     def store_block_tokens(self, block_text, source_file=""):
         if not block_text or not str(block_text).strip():
@@ -389,16 +391,19 @@ class TextLayerPdfProcessor(BasePdfProcessor):
                     text = self._normalize_block_text(block[4])
                     if not text:
                         continue
-                    cleaned_lines = self._filter_requirement_lines(text)
-                    if not cleaned_lines:
+                    cleaned_block = self._filter_requirement_lines(text)
+                    if not cleaned_block:
                         continue
-                    for line in cleaned_lines.split("\n"):
-                        normalized = re.sub(r"\s+", " ", line).strip()
-                        if not normalized or normalized.lower() in seen:
-                            continue
-                        seen.add(normalized.lower())
-                        blocks.append(normalized)
-                        self._store_block_text(normalized, source_name)
+                    normalized_block = re.sub(r"[ \t]+\n", "\n", cleaned_block)
+                    normalized_block = re.sub(r"\n{3,}", "\n\n", normalized_block).strip()
+                    if not normalized_block:
+                        continue
+                    block_key = normalized_block.lower()
+                    if block_key in seen:
+                        continue
+                    seen.add(block_key)
+                    blocks.append(normalized_block)
+                    self._store_block_text(normalized_block, source_name)
         finally:
             doc.close()
 

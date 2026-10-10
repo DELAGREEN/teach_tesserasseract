@@ -18,16 +18,15 @@ class PdfProcessingTests(unittest.TestCase):
         processor = PdfProcessingFactory.create("test.dwg.pdf")
         self.assertEqual(processor.__class__.__name__, "OCRPdfProcessor")
 
-    def test_token_storage_keeps_unique_tokens(self):
+    def test_token_storage_keeps_unique_blocks(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             db_path = os.path.join(tmp_dir, "tokens.db")
             store = TokenStorage(db_path=db_path)
-            store.store_block_tokens("ГОСТ 1234 ГОСТ 5678", source_file="example.pdf")
+            block = "ГОСТ 1234\nГОСТ 5678\nГОСТ 1234"
+            store.store_block_tokens(block, source_file="example.pdf")
             tokens = store.get_unique_tokens()
-            self.assertIn("ГОСТ", tokens)
-            self.assertIn("1234", tokens)
-            self.assertIn("5678", tokens)
-            self.assertEqual(len(tokens), 3)
+            self.assertIn(block, tokens)
+            self.assertEqual(len(tokens), 1)
 
     def test_text_layer_filters_noise(self):
         raw = """Документ подписан усиленной квалифицированной ЭЦП
@@ -117,6 +116,56 @@ ID версии: 74b68533-b381-40eb-a595-9eabbe2c6469
         self.assertIn("5 Неуказанный радиус внутреннего скругления не более 0,4 мм. Обеспеч. инстр.", cleaned)
         self.assertIn("7 Маркировать шрифтом 3...5-Пр3 ГОСТ 26.020-80.", cleaned)
 
+
+    def test_process_keeps_full_requirement_block_as_single_block(self):
+        class FakePage:
+            def get_text(self, mode):
+                return [[0, 0, 0, 0, """1 Гр. II-Б ОСТ 95-29-72
+
+Заготовка должна поставляться с ограничением по массовой доле:
+
+- фосфор не более 0,035 %;
+
+- медь не более 0,30 %.
+
+2 Материал-заменитель: Сталь 08Х18Н10Т ГОСТ 5632-2014.
+
+3 Общие допуски по ГОСТ 30893.2-2002-mK.
+
+4 Отверстие Г допускается производить в сборочной еде.
+
+5 Неуказанный радиус внутреннего скругления не более 0,4 мм. Обеспеч. инстр.
+
+6 Размер в скобках - после сборки.
+
+7 Маркировать шрифтом 3...5-Пр3 ГОСТ 26.020-80.
+"""]]
+
+        class FakeDoc:
+            def __init__(self):
+                self._pages = [FakePage()]
+            def __iter__(self):
+                return iter(self._pages)
+            def close(self):
+                pass
+
+        class FakeFitz:
+            @staticmethod
+            def open(stream, filetype):
+                return FakeDoc()
+
+        import pdf_processors
+        original_fitz = pdf_processors.fitz
+        pdf_processors.fitz = FakeFitz
+        try:
+            result = TextLayerPdfProcessor(token_storage=None).process(b'%PDF-1.4', source_name='sample.pdf')
+        finally:
+            pdf_processors.fitz = original_fitz
+
+        self.assertEqual(len(result['blocks']), 1)
+        self.assertIn("1 Гр. II-Б ОСТ 95-29-72", result['blocks'][0])
+        self.assertIn("Заготовка должна поставляться с ограничением по массовой доле:", result['blocks'][0])
+        self.assertIn("7 Маркировать шрифтом 3...5-Пр3 ГОСТ 26.020-80.", result['blocks'][0])
 
     def test_user_noise_regression(self):
         raw = """Допуск на торцовое биение
