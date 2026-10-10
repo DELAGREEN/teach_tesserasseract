@@ -170,6 +170,88 @@ class BasePdfProcessor(ABC):
 class OCRPdfProcessor(BasePdfProcessor):
     """OCR-процессор для .dwg.pdf."""
 
+    @staticmethod
+    def _is_noise_ocr_fragment(text):
+        value = re.sub(r"\s+", " ", str(text or "")).strip()
+        if not value:
+            return True
+        upper = value.upper()
+        metadata_tokens = (
+            "ДОКУМЕНТ ПОДПИСАН",
+            "СЕРТИФИКАТ",
+            "ЭЦП",
+            "ВЛАДЕЛЕЦ ПОДПИСИ",
+            "ДЕЙСТВИТЕЛЬНО С",
+            "КОПИРОВАЛ",
+            "ФОРМАТ",
+            "ЛИСТ",
+            "ПОДП.",
+            "ДАТА",
+            "СВС:",
+            "КЛАБ.",
+            "ВЕРСИИ",
+        )
+        if any(token in upper for token in metadata_tokens):
+            return True
+        if re.fullmatch(r"[\W_]+", value):
+            return True
+        if re.fullmatch(r"[-=|/\\]+", value):
+            return True
+        if re.fullmatch(r"[A-ZА-ЯЁ]{1,3}", value):
+            return True
+        return False
+
+    @classmethod
+    def _extract_requirement_blocks(cls, ocr_data):
+        if not isinstance(ocr_data, dict):
+            return []
+
+        text_values = list(ocr_data.get("text") or [])
+        conf_values = list(ocr_data.get("conf") or [])
+        left_values = list(ocr_data.get("left") or [])
+        top_values = list(ocr_data.get("top") or [])
+        if not text_values:
+            return []
+
+        grouped = {}
+        for idx, raw_text in enumerate(text_values):
+            cleaned = str(raw_text or "").strip()
+            if not cleaned:
+                continue
+            try:
+                conf = int(str(conf_values[idx]) if idx < len(conf_values) else "0")
+            except Exception:
+                conf = 0
+            if conf < 0:
+                continue
+            top = int(str(top_values[idx]) if idx < len(top_values) else "0")
+            left = int(str(left_values[idx]) if idx < len(left_values) else "0")
+            line_key = (top // 10,)
+            grouped.setdefault(line_key, []).append((cleaned, conf, left, top))
+
+        blocks = []
+        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):
+            line = " ".join(part for part, _, _, _ in sorted(entries, key=lambda item: item[3]))
+            clean = re.sub(r"\s+", " ", line).strip()
+            if not clean or cls._is_noise_ocr_fragment(clean):
+                continue
+            upper = clean.upper()
+            if not (any(ch.isdigit() for ch in clean) and any(ch.isalpha() for ch in clean)):
+                continue
+            if any(token in upper for token in ("ДОКУМЕНТ ПОДПИСАН", "СЕРТИФИКАТ", "ЭЦП", "ЛИСТ", "ФОРМАТ", "ВЕРСИИ", "КОПИРОВАЛ")):
+                continue
+            blocks.append(clean)
+
+        if not blocks:
+            candidate = "\n".join(
+                re.sub(r"\s+", " ", str(item or "")).strip()
+                for item in text_values if str(item or "").strip()
+            )
+            candidate = OCRPdfProcessor._clean_ocr_text(candidate)
+            if candidate:
+                blocks = [candidate]
+        return blocks
+
     @classmethod
     def supports(cls, file_name):
         name = str(file_name or "").lower()
@@ -184,13 +266,32 @@ class OCRPdfProcessor(BasePdfProcessor):
         if not pages:
             raise RuntimeError("Не удалось конвертировать PDF в изображения")
 
-        image = np.array(pages[0])
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (3, 3), 0)
-        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        custom_config = r"--psm 6 -c preserve_interword_spaces=1"
-        text = pytesseract.image_to_string(binary, lang="rus", config=custom_config).strip()
-        cleaned = self._clean_ocr_text(text)
+        blocks = []
+        for page in pages:
+            image = np.array(page)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (3, 3), 0)
+            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            custom_config = r"--psm 6 -c preserve_interword_spaces=1"
+            try:
+                ocr_data = pytesseract.image_to_data(binary, lang="rus", config=custom_config, output_type=pytesseract.Output.DICT)
+            except Exception:
+                ocr_data = {"text": [pytesseract.image_to_string(binary, lang="rus", config=custom_config).strip()]}
+            page_blocks = self._extract_requirement_blocks(ocr_data)
+            if page_blocks:
+                blocks.extend(page_blocks)
+
+        if not blocks:
+            image = np.array(pages[0])
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (3, 3), 0)
+            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            text = pytesseract.image_to_string(binary, lang="rus", config=custom_config if 'custom_config' in locals() else r"--psm 6 -c preserve_interword_spaces=1").strip()
+            cleaned = self._clean_ocr_text(text)
+            if cleaned:
+                blocks = [cleaned]
+
+        cleaned = self._clean_ocr_text("\n\n".join(blocks)).strip()
         if cleaned:
             logger.info(
                 "OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.",
@@ -198,8 +299,8 @@ class OCRPdfProcessor(BasePdfProcessor):
             )
         return {
             "text": cleaned,
-            "blocks": [{"text": cleaned, "source": source_name}],
-            "blocks_data": {"block_1": {"text": cleaned, "source": source_name}},
+            "blocks": [{"text": block, "source": source_name} for block in blocks if block],
+            "blocks_data": {f"block_{idx + 1}": {"text": block, "source": source_name} for idx, block in enumerate(blocks) if block},
         }
 
     @staticmethod
@@ -210,7 +311,6 @@ class OCRPdfProcessor(BasePdfProcessor):
         filtered = filtered.replace("\xa0", " ")
         filtered = re.sub(r"\n{3,}", "\n\n", filtered)
         return filtered.strip()
-
 
 class TextLayerPdfProcessor(BasePdfProcessor):
     """Text-layer extractor для .cdw/.cwd PDF, с базовой фильтрацией технических требований."""
@@ -256,11 +356,14 @@ class TextLayerPdfProcessor(BasePdfProcessor):
         upper = text.upper()
         if len(text) < 3:
             return True
+        requirement_like = bool(re.search(r"(?<!\w)\d{1,2}\s*(?:[\.\)\-]|[*•])?\s*[A-ZА-ЯЁ]", text, flags=re.IGNORECASE))
+        if requirement_like and any(token in upper for token in ("СВАРК", "ВЫПОЛНИТЬ", "ПОКРЫТИЕ", "КОНТРОЛЬ", "ДОПУСК", "РАЗМЕР", "ПРОХОЖДЕНИЕ", "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ")):
+            return False
         if "СТЕКЛОТЕКСТОЛИТ" in upper and "МАРКИ" in upper:
             return True
         if upper.startswith("СТЕКЛОТЕКСТОЛИТ"):
             return True
-        if any(token in upper for token in (
+        metadata_tokens = (
             "ДОКУМЕНТ ПОДПИСАН",
             "СЕРТИФИКАТ",
             "ЭЦП",
@@ -280,7 +383,13 @@ class TextLayerPdfProcessor(BasePdfProcessor):
             "ЛИСТ",
             "ПОДП.",
             "ДАТА",
-        )):
+            "СВС:",
+            "КЛАБ.",
+            "КЛАБ ",
+            "ВЕРСИИ",
+            "КРАТКИЙ",
+        )
+        if any(token in upper for token in metadata_tokens):
             return True
         if upper.startswith("A4") or upper.startswith("A3") or upper.startswith("A5"):
             return True
@@ -292,12 +401,50 @@ class TextLayerPdfProcessor(BasePdfProcessor):
             return True
         if re.fullmatch(r"[A-ZА-ЯЁ]{1,3}", text):
             return True
+        if re.match(r"^[A-ZА-ЯЁ]\s*\(\d+:\d+\)", upper):
+            return True
+        if re.match(r"^[:.;/|\\-]+", text):
+            return True
         return False
 
     @staticmethod
     def _filter_requirement_lines(text):
         raw_lines = str(text or "").replace("\r", "\n").split("\n")
         kept = []
+        metadata_tokens = (
+            "ДОКУМЕНТ ПОДПИСАН",
+            "СЕРТИФИКАТ",
+            "ЭЦП",
+            "ВЛАДЕЛЕЦ ПОДПИСИ",
+            "ДЕЙСТВИТЕЛЬНО С",
+            "КОПИРОВАЛ",
+            "ФОРМАТ",
+            "ЛИСТ",
+            "ПОДП.",
+            "ДАТА",
+            "СВС:",
+            "КЛАБ.",
+            "ВЕРСИИ",
+            "ПОДПИСИ",
+        )
+        keyword_patterns = (
+            "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ", "ПОКРЫТИЕ", "РАДИУС", "ДИАМЕТР",
+            "ШЕРОХОВАТОСТЬ", "СВАРКА", "СВАРК", "СВАРКУ", "СВАРНЫ", "СВАРНО", "РЕЗЬБА", "ПРИМЕЧАНИЕ",
+            "ФОСФОР", "МЕДЬ", "ДОЛЯ", "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "МАРКИРОВАТЬ",
+            "МАССОВОЙ", "МАССОВАЯ", "ПОСТАВЛЯТЬСЯ", "ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ",
+            "ДОПУСКАЕТСЯ", "СКОБКАХ", "ШРИФТОМ", "СБОРКЕ", "СБОРКИ", "ДОПУСК",
+            "ОТВЕРСТИЕ", "КОНТРОЛЬ", "ПРОХОЖДЕНИЕ", "РАЗМЕР", "МАТЕРИАЛ-ЗАМЕНИТЕЛЬ",
+            "ВЫПОЛНИТЬ", "КОНТРОЛИРОВАТЬ", "ИСПОЛНИТЬ", "УСТАНОВИТЬ"
+        )
+        strong_requirement_markers = (
+            "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "ДОПУСКАЕТСЯ", "МАРКИРОВАТЬ",
+            "РАЗМЕРЫ", "РАЗМЕР", "РАДИУС", "ДОПУСКИ", "ДОПУСК",
+            "ПРИМЕЧАНИЕ", "ПОСТАВЛЯТЬСЯ", "ЗАМЕНИТЕЛЬ", "СБОРКЕ",
+            "СБОРКИ", "ОБЕСПЕЧ", "ОБЩИЕ", "МАТЕРИАЛ-ЗАМЕНИТЕЛЬ",
+            "СВАРК", "СВАРКА", "ПОКРЫТИЕ", "ОТВЕРСТИЕ", "КОНТРОЛЬ",
+            "ПРОХОЖДЕНИЕ", "ВЫПОЛНИТЬ"
+        )
+
         for raw in raw_lines:
             candidate = re.sub(r"\s+", " ", raw).strip()
             if not candidate:
@@ -307,67 +454,32 @@ class TextLayerPdfProcessor(BasePdfProcessor):
                 continue
             if TextLayerPdfProcessor._is_noise_line(candidate):
                 continue
-            keyword_patterns = (
-                "ГОСТ", "ОСТ", "ТУ", "МАТЕРИАЛ", "ПОКРЫТИЕ", "РАДИУС", "ДИАМЕТР",
-                "ШЕРОХОВАТОСТЬ", "СВАРКА", "РЕЗЬБА", "ПРИМЕЧАНИЕ", "ФОСФОР",
-                "МЕДЬ", "ДОЛЯ", "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "МАРКИРОВАТЬ", "МАССОВОЙ",
-                "МАССОВАЯ", "ПОСТАВЛЯТЬСЯ", "ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ",
-                "ДОПУСКАЕТСЯ", "СКОБКАХ", "ШРИФТОМ", "СБОРКЕ", "СБОРКИ"
-            )
-            has_requirement_keyword = any(re.search(rf"\b{re.escape(keyword)}\b", upper) is not None for keyword in keyword_patterns)
-            has_numeric = any(ch.isdigit() for ch in candidate)
-            has_letters = any(ch.isalpha() for ch in candidate)
+            if any(token in upper for token in metadata_tokens):
+                continue
 
-            numbered_match = re.match(r"^(?:[-*•\s]*)(?P<num>\d{1,2})\s*(?:[\.\)\-]|[*•])?\s*(?P<body>.+)$", candidate)
+            extracted = candidate
+            numbered_match = re.search(
+                r"(?P<num>\d{1,2})\s*(?:[\.\)\-]|[*•])?\s*(?P<body>[A-ZА-ЯЁ].+)$",
+                candidate,
+                flags=re.IGNORECASE,
+            )
             if numbered_match:
                 body = (numbered_match.group("body") or "").strip()
-                if not body:
-                    continue
-                short_numbered_noise = (
-                    len(body) <= 18
-                    and not has_requirement_keyword
-                    and not re.search(r"[A-Za-zА-ЯЁ]{4,}", body)
-                )
-                if short_numbered_noise:
-                    continue
-                kept.append(candidate)
+                if body and not any(token in body.upper() for token in metadata_tokens):
+                    extracted = f"{numbered_match.group('num')} {body}".strip()
+
+            if not re.match(r"^(?:[-*•\s]*\d)", extracted):
                 continue
 
-            last_kept = kept[-1] if kept else ""
-            previous_numbered = bool(re.match(r"^\d", last_kept))
-            reference_prefixes = ("ГОСТ ", "ОСТ ", "ТУ ", "СТАЛЬ ", "МАТЕРИАЛ ", "CRC", "A4", "A3", "A5", "ID ВЕРСИИ")
-            reference_like = candidate.upper().startswith(reference_prefixes)
-            continuation = (
-                bool(kept)
-                and previous_numbered
-                and not re.match(r"^\d", candidate)
-                and not reference_like
-                and not TextLayerPdfProcessor._is_noise_line(candidate)
-            )
-            if continuation:
-                kept.append(candidate)
+            upper_extracted = extracted.upper()
+            if any(token in upper_extracted for token in metadata_tokens):
                 continue
-            if re.match(r"^(?:СТАЛЬ|МАТЕРИАЛ)\b", candidate, flags=re.IGNORECASE):
+            if not (any(keyword in upper_extracted for keyword in keyword_patterns) or any(marker in upper_extracted for marker in strong_requirement_markers)):
                 continue
 
-            if not (has_letters and has_numeric):
-                continue
-
-            strong_requirement_markers = (
-                "НЕ БОЛЕЕ", "НЕ МЕНЕЕ", "ДОПУСКАЕТСЯ", "МАРКИРОВАТЬ",
-                "РАЗМЕРЫ", "РАЗМЕР", "РАДИУС", "ДОПУСКИ", "ДОПУСК",
-                "ПРИМЕЧАНИЕ", "ПОСТАВЛЯТЬСЯ", "ЗАМЕНИТЕЛЬ", "СБОРКЕ",
-                "СБОРКИ", "ОБЕСПЕЧ", "ОБЩИЕ", "МАТЕРИАЛ-ЗАМЕНИТЕЛЬ"
-            )
-            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)
-            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:
-                continue
-
-            if has_requirement_keyword or len(candidate) >= 25:
-                kept.append(candidate)
+            kept.append(extracted)
 
         return "\n".join(kept)
-
     @staticmethod
     def _looks_like_requirement_block(text):
         if not text:

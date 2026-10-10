@@ -1080,6 +1080,830 @@
 			"type": "shell",
 			"command": "cd /home/icebook7/rep/teach_tesserasseract && git add . && git commit -m \"Fix material descriptor noise filtering and regression tests\" && git push origin dev",
 			"isBackground": false
+		},
+		{
+			"label": "read key python files",
+			"type": "shell",
+			"command": "bash -lc 'cd /home/icebook7/rep/teach_tesserasseract && sed -n \"1,220p\" pdf_processors.py && printf \"\\n=====ADMIN_APP=====\\n\" && sed -n \"1,260p\" admin_app.py'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read generated content file",
+			"type": "shell",
+			"command": "bash -lc 'cat /home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/5a0fa73e-e70f-48a1-8e83-a96e5ede45da/call_QiJLZEx0c8d3NDkN3ng0jIQf__vscode-1791644990207/content.txt'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "cat direct generated content file",
+			"type": "shell",
+			"command": "bash -lc 'sed -n \"1,260p\" \"/home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/5a0fa73e-e70f-48a1-8e83-a96e5ede45da/call_QiJLZEx0c8d3NDkN3ng0jIQf__vscode-1791644990207/content.txt\"'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "list generated chat resource files",
+			"type": "shell",
+			"command": "bash -lc 'ls -lt /home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/ && printf \"\\n---\\n\" && find /home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources -maxdepth 3 -type f | tail -20'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read generated content actual",
+			"type": "shell",
+			"command": "bash -lc 'sed -n \"1,260p\" \"/home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/5a0fa73e-e70f-48a1-8e83-a96e5ede45da/call_QiJLZEx0c8d3NDkN3ng0jIQf__vscode-1791644990207/content.txt\"'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "print latest generated content",
+			"type": "shell",
+			"command": "bash -lc 'latest=$(find /home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/5a0fa73e-e70f-48a1-8e83-a96e5ede45da -type f | sort | tail -1); echo \"$latest\"; echo \"---\"; sed -n \"1,260p\" \"$latest\"'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "grep relevant file logic",
+			"type": "shell",
+			"command": "bash -lc 'cd /home/icebook7/rep/teach_tesserasseract && echo \"=== pdf_processors.py ===\" && rg -n \"cdw|dwg|source|format|is_.*pdf|process|db|sqlite|insert|save\" pdf_processors.py admin_app.py main.py api_client.py ocr_processor.py tests -g \"*.py\" --glob \"!venv\"'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "grep with grep -R",
+			"type": "shell",
+			"command": "bash -lc 'cd /home/icebook7/rep/teach_tesserasseract && echo \"=== files ===\" && grep -RInE \"cdw|dwg|source|format|process|sqlite|insert|save|pdf\" pdf_processors.py admin_app.py main.py api_client.py ocr_processor.py tests --include=\"*.py\" --exclude-dir=venv --exclude-dir=.git'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read grep output file",
+			"type": "shell",
+			"command": "bash -lc 'sed -n \"1,220p\" \"/home/icebook7/.config/Code/User/workspaceStorage/de5c29b0eccb0430491146398880b882/GitHub.copilot-chat/chat-session-resources/5a0fa73e-e70f-48a1-8e83-a96e5ede45da/call_iEpL5ujzuwhCHn8U1eMHsFvv__vscode-1791644990215/content.txt\"'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "python targeted grep",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nfor fn in ['pdf_processors.py','admin_app.py','api_client.py','main.py','ocr_processor.py']:\n    p = Path(fn)\n    if not p.exists():\n        continue\n    print(f'=== {fn} ===')\n    lines = p.read_text(errors='ignore').splitlines()\n    for i,l in enumerate(lines,1):\n        if any(k.lower() in l.lower() for k in ['cdw','dwg','pdf','sqlite','insert','db','source','api','format']):\n            print(f'{i}: {l[:220]}')\n    print()\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect pdf_processors segments",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor i,l in enumerate(lines,1):\n    low = l.lower()\n    if any(k in low for k in ['dwg','cdw','material','filename','save','db','textlayer','processor','source','pdf']):\n        start=max(1,i-6); end=min(len(lines),i+18)\n        print(f'--- lines {start}-{end} ---')\n        for j in range(start,end+1):\n            print(f'{j}: {lines[j-1]}')\n        print()\n        break\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "find processor class definitions",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor i,l in enumerate(lines,1):\n    if 'class ' in l or 'def ' in l and ('process' in l or 'extract' in l or 'save' in l or 'filter' in l):\n        if i<230:\n            print(f'{i}: {l}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read pdf processor class block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor start,end in [(150,340)]:\n    for j in range(start,end+1):\n        if j <= len(lines):\n            print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read focused processor block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor j in range(150,261):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "continue processor block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor j in range(260,420):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect admin_app relevant lines",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('admin_app.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor i,l in enumerate(lines,1):\n    low=l.lower()\n    if any(k in low for k in ['dwg','cdw','sqlite','db_path','insert','filename','source_name','upload','api','pdf','.pdf','task','store','process']):\n        if 1 <= i <= 260:\n            print(f'{i}: {l}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read admin_app early block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nlines = Path('admin_app.py').read_text(errors='ignore').splitlines()\nfor j in range(1,120):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read factory and storage block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text(errors='ignore').splitlines()\nfor j in range(1,160):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read factory and maybe api client",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nfor path in ['pdf_processors.py','api_client.py']:\n    p=Path(path)\n    if not p.exists():\n        continue\n    print(f'=== {path} ===')\n    lines = p.read_text(errors='ignore').splitlines()\n    for j in range(420,520):\n        if j<=len(lines):\n            print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read factory create method",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text(errors='ignore').splitlines()\nfor j in range(517,620):\n    if j<=len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read pdf processing tests",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np=Path('tests/test_pdf_processing.py')\nlines=p.read_text(errors='ignore').splitlines()\nfor j in range(1,260):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read api client exact block",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('api_client.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor j in range(1,220):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read api client top part",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('api_client.py')\nlines = p.read_text(errors='ignore').splitlines()\nfor j in range(1,120):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "add failing regression test",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nneedle = \"    def test_text_layer_filters_noise(self):\\n\"\ninsert = '''    def test_ocr_processing_does_not_store_dwg_results_in_token_db(self):\n        with tempfile.TemporaryDirectory() as tmp_dir:\n            db_path = os.path.join(tmp_dir, \"tokens.db\")\n            store = TokenStorage(db_path=db_path)\n            processor = PdfProcessingFactory.create(\"test.dwg.pdf\", token_storage=store)\n            self.assertEqual(processor.__class__.__name__, \"OCRPdfProcessor\")\n\n            import types\n            import pdf_processors\n\n            pdf_processors.cv2 = types.SimpleNamespace(\n                cvtColor=lambda image, code: image,\n                GaussianBlur=lambda image, kernel, sigma: image,\n                threshold=lambda image, thresh, maxval, flags: (None, image),\n                COLOR_BGR2GRAY=0,\n                THRESH_BINARY=0,\n                THRESH_OTSU=0,\n            )\n            pdf_processors.np = types.SimpleNamespace(array=lambda value: value[0])\n            pdf_processors.pytesseract = types.SimpleNamespace(image_to_string=lambda *args, **kwargs: \"Распознанный текст DWG\")\n            pdf_processors.convert_from_bytes = lambda pdf_bytes, dpi=300: [b\"page-image\"]\n\n            result = processor.process(b\"dummy-pdf\", source_name=\"test.dwg.pdf\")\n\n            self.assertIn(\"Распознанный текст DWG\", result[\"text\"])\n            with sqlite3.connect(db_path) as conn:\n                total = conn.execute(\"SELECT COUNT(*) FROM unique_tokens\").fetchone()[0]\n            self.assertEqual(total, 0)\n\n    def test_text_layer_filters_noise(self):\n'''\nif \"test_ocr_processing_does_not_store_dwg_results_in_token_db\" not in text:\n    text = text.replace(needle, insert)\n    path.write_text(text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run regression tests before fix",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect env values",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\np = Path('.env')\nprint(p.exists())\nif p.exists():\n    print(p.read_text())\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "fix OCR DB write and add env coverage",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\n\n# Patch pdf_processors.py\npdf_path = Path('pdf_processors.py')\ntext = pdf_path.read_text()\nold = '''        cleaned = self._clean_ocr_text(text)\n        if cleaned:\n            self._store_block_text(cleaned, source_name)\n        return {\n'''\nnew = '''        cleaned = self._clean_ocr_text(text)\n        if cleaned:\n            logger.info(\n                \"OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.\",\n                source_name or 'без имени',\n            )\n        return {\n'''\nif old in text:\n    text = text.replace(old, new)\nelse:\n    raise SystemExit('Target block not found in pdf_processors.py')\npdf_path.write_text(text)\n\n# Patch tests file\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nif 'import sqlite3' not in text:\n    text = text.replace('import os\\nimport tempfile\\nimport unittest\\n', 'import os\\nimport sqlite3\\nimport tempfile\\nimport unittest\\n')\ntext = text.replace(\n'''            pdf_processors.np = types.SimpleNamespace(array=lambda value: value[0])\n            pdf_processors.pytesseract = types.SimpleNamespace(image_to_string=lambda *args, **kwargs: \"Распознанный текст DWG\")\n            pdf_processors.convert_from_bytes = lambda pdf_bytes, dpi=300: [b\"page-image\"]\n''',\n'''            pdf_processors.np = types.SimpleNamespace(array=lambda value: value[0])\n            pdf_processors.pytesseract = types.SimpleNamespace(image_to_string=lambda *args, **kwargs: \"Распознанный текст DWG\")\n            pdf_processors.convert_from_bytes = lambda pdf_bytes, dpi=300: [b\"page-image\"]\n'''\n)\npath.write_text(text)\n\n# Update .env to include cwd if it was restricted\nenv_path = Path('.env')\nif env_path.exists():\n    env_text = env_path.read_text()\n    if 'ALLOWED_FILE_TYPES=' in env_text:\n        env_text = env_text.replace('ALLOWED_FILE_TYPES=dwg.pdf,cdw.pdf', 'ALLOWED_FILE_TYPES=dwg.pdf,cdw.pdf,cwd.pdf')\n        env_path.write_text(env_text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify patched logic",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nprint('--- pdf_processors OCR block ---')\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor j in range(186,205):\n    print(f'{j}: {lines[j-1]}')\nprint('--- test imports and new test ---')\nlines = Path('tests/test_pdf_processing.py').read_text().splitlines()\nfor j in range(1,110):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nprint('--- .env allowed types ---')\nprint(Path('.env').read_text())\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify pdf processing regression suite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run admin app tests",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "fix env precedence",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\nfor file_name in ['admin_app.py','pdf_processors.py']:\n    path = Path(file_name)\n    text = path.read_text()\n    text = text.replace('load_dotenv(BASE_DIR / \".env\", override=True)', 'load_dotenv(BASE_DIR / \".env\", override=False)')\n    text = text.replace('load_dotenv(env_path, override=True)', 'load_dotenv(env_path, override=False)')\n    path.write_text(text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run relevant regression suites after fixes",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "check git staging and commit",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && git status --short && echo '---CACHED---' && git diff --cached --stat && echo '---WORKTREE---' && git diff --stat",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "commit staged files",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && git commit -m \"Fix PDF processing rules and regression tests\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "add noisy OCR regression test",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nneedle = '''    def test_text_layer_filters_noise(self):\n'''\ninsert = '''    def test_text_layer_keeps_real_requirement_lines_from_noisy_dwg_ocr(self):\n        raw = \"\"\"1 Гр. II-Б ОСТ 95-29-72\nЗаготовка должна поставляться с ограничением по массовой доле:\n- фосфор не более 0,035 %;\n- медь не более 0,30 %.\n2 Материал-заменитель: Сталь 08Х18Н10Т ГОСТ 5632-2014.\n3 Общие допуски по ГОСТ 30893.2-2002-mK.\n4 Отверстие Г допускается производить в сборочной единице.\n5 Неуказанный радиус внутреннего скругления не более 0,4 мм. Обеспеч. инстр.\n6 Размер в скобках - после сборки.\n7 Маркировать шрифтом 3...5-Пр3 ГОСТ 26.020-80.\nДокумент подписан усиленной квалифицированной ЭЦП\nСертификат : 032а1960006сае3297464а? а а1а59ееа\n\"\"\"\n        cleaned = TextLayerPdfProcessor._filter_requirement_lines(raw)\n        self.assertIn(\"1 Гр. II-Б ОСТ 95-29-72\", cleaned)\n        self.assertIn(\"Заготовка должна поставляться\", cleaned)\n        self.assertIn(\"2 Материал-заменитель: Сталь 08Х18Н10Т ГОСТ 5632-2014.\", cleaned)\n        self.assertNotIn(\"Документ подписан\", cleaned)\n        self.assertNotIn(\"Сертификат\", cleaned)\n\n    def test_text_layer_filters_noise(self):\n'''\nif 'test_text_layer_keeps_real_requirement_lines_from_noisy_dwg_ocr' not in text:\n    text = text.replace(needle, insert)\n    path.write_text(text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect current filter and sample behavior",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nimport re\nfrom pdf_processors import TextLayerPdfProcessor\nsample = '''1 Гр. II-Б ОСТ 95-29-72\nЗаготовка должна поставляться с ограничением по массовой доле:\n- фосфор не более 0,035 %;\n- медь не более 0,30 %.\n2 Материал-заменитель: Сталь 08Х18Н10Т ГОСТ 5632-2014.\n3 Общие допуски по ГОСТ 30893.2-2002-mK.\n4 Отверстие Г допускается производить в сборочной еде.\n5 Неуказанный радиус внутреннего скругления не более 0,4 мм. Обеспеч. инстр.\n6 Размер в скобках - после сборки.\n7 Маркировать шрифтом 3...5-Пр3 ГОСТ 26.020-80.\n'''\nprint('FILTERED:')\nprint(TextLayerPdfProcessor._filter_requirement_lines(sample))\nprint('\\nNOISE CHECKS:')\nfor line in sample.splitlines():\n    print(repr(line), '=>', TextLayerPdfProcessor._is_noise_line(line))\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read processor filter section",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text(errors='ignore').splitlines()\nfor start,end in [(248,380)]:\n    for j in range(start,end+1):\n        if j <= len(lines):\n            print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read current tests relevant to filter",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('tests/test_pdf_processing.py').read_text(errors='ignore').splitlines()\nfor start,end in [(60,130)]:\n    for j in range(start,end+1):\n        if j <= len(lines):\n            print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "reproduce noisy OCR with current filter",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pdf_processors import TextLayerPdfProcessor\nsample = '''.: С Че веносауих А Б поберхности ЁЕ опоры поз. 1 0,5 мм на длине 1 м. Допускается пробка. 1 СВарку Выполнить по произбодстбенно-технологической\n6 После сварки контролировать прохождение имитаторов документации предприятия-изготобителя, разработанной с учетом\nКЛАБ.7 16 331.012 В трубах поз. 2, 3. Прохождение должно быть свободным, требований разделоб 2-4, 6-13, 15, 18 ОСТ 5Р.9653-2015:\n- сВарные шбы №1, 4 аргонодугобым способом проволокой\n7 Покрытие, кроме опоры поз. 1 и труб поз. 2, 3: эмаль ПФ-115 (2)\n- сварной шоб № 2 электродом 3ЭА-395/9 ОСТ В5Р.9574-81,\n- сбарные шбы № 5 аргонодуговым способом проболокоц\n2 Контроль качество сбарных соединении быполнить по ХУ!\nкомплексу контроля ОСТ 5Р.9654-2015. Нормы оценки качества по\nкатегории ОСТ 5Р.9634-2015.\n3 * Размеры для спрабок.\nВзаимное росположение поза Д трубы поз. 5, лыски Ж опоры поз. 1 ц\nплуты поз. 4& по чертежу.\n5 Допуск перпендекулярности труд поз. 2, 5 относительно\nГ (1:1)\nД й квалиф ЭЦП | Д й квалиф й ЭЦП\nдокумент подписан усиленнои квалифицированнои Сертификат : 032а1960006сае3297464а? а а1а59ееа\nВладелец подписи : Морозова Дарья Валерьевна Действительно с 22.06.2022 до 22.09.2023\nЛист. №докцм. |Подп. |Дата П\n10 Версии: 093 6-1256-6407-0272-1013<#57055е Копировал СВС: 041А2687 Формат АёхЁ\n'''\nprint(TextLayerPdfProcessor._filter_requirement_lines(sample))\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "add failing noisy OCR regression test",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nneedle = '''    def test_text_layer_filters_noise(self):\\n'''\ninsert = '''    def test_text_layer_keeps_numbered_requirements_and_rejects_doc_metadata(self):\\n        raw = \"\"\".: С Че веносауих А Б поберхности ЁЕ опоры поз. 1 0,5 мм на длине 1 м. Допускается пробка. 1 СВарку Выполнить по произбодстбенно-технологической\\n6 После сварки контролировать прохождение имитаторов документации предприятия-изготобителя, разработанной с учетом\\nКЛАБ.7 16 331.012 В трубах поз. 2, 3. Прохождение должно быть свободным, требований разделоб 2-4, 6-13, 15, 18 ОСТ 5Р.9653-2015:\\n- сВарные шбы №1, 4 аргонодугобым способом проволокой\\n7 Покрытие, кроме опоры поз. 1 и труб поз. 2, 3: эмаль ПФ-115 (2)\\n- сварной шоб № 2 электродом 3ЭА-395/9 ОСТ В5Р.9574-81,\\n- сбарные шбы № 5 аргонодуговым способом проболокоц\\n2 Контроль качество сбарных соединении быполнить по ХУ!\\nкомплексу контроля ОСТ 5Р.9654-2015. Нормы оценки качества по\\n3 * Размеры для спрабок.\\nВзаимное росположение поза Д трубы поз. 5, лыски Ж опоры поз. 1 ц\\nплуты поз. 4& по чертежу.\\n5 Допуск перпендекулярности труд поз. 2, 5 относительно\\nГ (1:1)\\nД й квалиф ЭЦП | Д й квалиф й ЭЦП\\nдокумент подписан усиленнои квалифицированнои Сертификат : 032а1960006сае3297464а? а а1а59ееа\\nВладелец подписи : Морозова Дарья Валерьевна Действительно с 22.06.2022 до 22.09.2023\\nЛист. №докцм. |Подп. |Дата П\\n10 Версии: 093 6-1256-6407-0272-1013<#57055е Копировал СВС: 041А2687 Формат АёхЁ\\n\"\"\"\\n        cleaned = TextLayerPdfProcessor._filter_requirement_lines(raw)\\n        self.assertIn(\"1 СВарку Выполнить\", cleaned)\\n        self.assertIn(\"6 После сварки контролировать\", cleaned)\\n        self.assertIn(\"7 Покрытие, кроме опоры\", cleaned)\\n        self.assertNotIn(\"документ подписан\", cleaned.lower())\\n        self.assertNotIn(\"Владелец подписи\", cleaned.lower())\\n        self.assertNotIn(\"Лист. №докцм.\", cleaned)\\n        self.assertNotIn(\"Формат АёхЁ\", cleaned)\\n\\n    def test_text_layer_filters_noise(self):\\n'''\nif 'test_text_layer_keeps_numbered_requirements_and_rejects_doc_metadata' not in text:\n    text = text.replace(needle, insert)\n    path.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect env and current filter test output",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && echo '.env:' && cat .env && echo '---' && python - <<'PY'\nimport os\nfrom pathlib import Path\nfrom dotenv import load_dotenv\nload_dotenv(Path('.env'), override=False)\nprint('ALLOWED_FILE_TYPES env=', os.getenv('ALLOWED_FILE_TYPES'))\nprint('ENABLE_CWD_PDF_PROCESSING=', os.getenv('ENABLE_CWD_PDF_PROCESSING'))\nfrom pdf_processors import PdfProcessingFactory\nprint(PdfProcessingFactory.create('test.cwd.pdf'))\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "patch filter logic for requirement OCR blocks",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\nold = '''    @staticmethod\n    def _is_noise_line(line):\n        text = re.sub(r\"\\s+\", \" \", str(line or \"\")).strip()\n        if not text:\n            return True\n        upper = text.upper()\n        if len(text) < 3:\n            return True\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n            return True\n        if any(token in upper for token in (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"CRC\",\n            \"ID ВЕРСИИ\",\n            \"ИНФОРМАЦИЯ\",\n            \"ПОДТ.\",\n            \"РАЗРАБ.\",\n            \"ПРОВ.\",\n            \"Н.КОНТР.\",\n            \"Т.КОНТР.\",\n            \"ИЗМ.\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n        )):\n            return True\n        if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n            return True\n        if re.fullmatch(r\"[0-9A-F]{8,}\", upper):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", text):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", text):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        return False\n\n    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\", \"ФОСФОР\",\n                \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\", \"МАССОВОЙ\",\n                \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\"\n            )\n            has_requirement_keyword = any(re.search(rf\"\\b{re.escape(keyword)}\\b\", upper) is not None for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if not body:\n                    continue\n                short_numbered_noise = (\n                    len(body) <= 18\n                    and not has_requirement_keyword\n                    and not re.search(r\"[A-Za-zА-ЯЁ]{4,}\", body)\n                )\n                if short_numbered_noise:\n                    continue\n                kept.append(candidate)\n                continue\n\n            last_kept = kept[-1] if kept else \"\"\n            previous_numbered = bool(re.match(r\"^\\d\", last_kept))\n            reference_prefixes = (\"ГОСТ \", \"ОСТ \", \"ТУ \", \"СТАЛЬ \", \"МАТЕРИАЛ \", \"CRC\", \"A4\", \"A3\", \"A5\", \"ID ВЕРСИИ\")\n            reference_like = candidate.upper().startswith(reference_prefixes)\n            continuation = (\n                bool(kept)\n                and previous_numbered\n                and not re.match(r\"^\\d\", candidate)\n                and not reference_like\n                and not TextLayerPdfProcessor._is_noise_line(candidate)\n            )\n            if continuation:\n                kept.append(candidate)\n                continue\n            if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                continue\n\n            if not (has_letters and has_numeric):\n                continue\n\n            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:\n                continue\n\n            if has_requirement_keyword or len(candidate) >= 25:\n                kept.append(candidate)\n\n        return \"\\n\".join(kept)\n'''\nnew = '''    @staticmethod\n    def _is_noise_line(line):\n        text = re.sub(r\"\\s+\", \" \", str(line or \"\")).strip()\n        if not text:\n            return True\n        upper = text.upper()\n        if len(text) < 3:\n            return True\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n            return True\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"CRC\",\n            \"ID ВЕРСИИ\",\n            \"ИНФОРМАЦИЯ\",\n            \"ПОДТ.\",\n            \"РАЗРАБ.\",\n            \"ПРОВ.\",\n            \"Н.КОНТР.\",\n            \"Т.КОНТР.\",\n            \"ИЗМ.\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"КЛАБ \",\n            \"ВЕРСИИ\",\n            \"КРАТКИЙ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n            return True\n        if re.fullmatch(r\"[0-9A-F]{8,}\", upper):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", text):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", text):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        return False\n\n    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n\n            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n                \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n                \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n                \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПОКРЫТИЕ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\"\n            )\n            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if not body:\n                    continue\n                short_numbered_noise = (\n                    len(body) <= 18\n                    and not has_requirement_keyword\n                    and not re.search(r\"[A-Za-zА-ЯЁ]{4,}\", body)\n                )\n                if short_numbered_noise:\n                    continue\n                kept.append(candidate)\n                continue\n\n            last_kept = kept[-1] if kept else \"\"\n            previous_numbered = bool(re.match(r\"^\\d\", last_kept))\n            reference_prefixes = (\"ГОСТ \", \"ОСТ \", \"ТУ \", \"СТАЛЬ \", \"МАТЕРИАЛ \", \"CRC\", \"A4\", \"A3\", \"A5\", \"ID ВЕРСИИ\")\n            reference_like = candidate.upper().startswith(reference_prefixes)\n            continuation = (\n                bool(kept)\n                and previous_numbered\n                and not re.match(r\"^\\d\", candidate)\n                and not reference_like\n                and not TextLayerPdfProcessor._is_noise_line(candidate)\n            )\n            if continuation:\n                kept.append(candidate)\n                continue\n            if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                continue\n\n            if not (has_letters and has_numeric):\n                continue\n\n            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:\n                continue\n\n            if has_requirement_keyword or len(candidate) >= 25:\n                if len(candidate) > 120 and not has_strong_requirement_marker and not has_requirement_keyword:\n                    continue\n                kept.append(candidate)\n\n        return \"\\n\".join(kept)\n'''\nif old not in text:\n    raise SystemExit('Old filter block not found')\ntext = text.replace(old, new)\npath.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify filter patch with pytest",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "set allowed file types to include cwd and rerun pytest",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && printf '%s\n' '# Core runtime settings' 'MONITORED_DIR=/pdf' 'UID=1000' 'GID=1000' '' '# Admin panel settings' 'ADMIN_LOGIN=developer' 'ADMIN_PASSWORD=change_me' 'ADMIN_PORT=5002' 'ADMIN_SECRET_KEY=teach-tesseract-admin-secret' 'TOKEN_DB_PATH=results/unique_tokens.db' '' '# Allowed file formats for processing.' '# Example: dwg.pdf,cdw.pdf,cwd.pdf' 'ALLOWED_FILE_TYPES=dwg.pdf,cdw.pdf,cwd.pdf' > .env && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run full relevant regression suite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "validate sample OCR output after filter changes",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pdf_processors import TextLayerPdfProcessor\nsample = '''.: С Че веносауих А Б поберхности ЁЕ опоры поз. 1 0,5 мм на длине 1 м. Допускается пробка. 1 СВарку Выполнить по произбодстбенно-технологической\n6 После сварки контролировать прохождение имитаторов документации предприятия-изготобителя, разработанной с учетом\nКЛАБ.7 16 331.012 В трубах поз. 2, 3. Прохождение должно быть свободным, требований разделоб 2-4, 6-13, 15, 18 ОСТ 5Р.9653-2015:\n- сВарные шбы №1, 4 аргонодугобым способом проволокой\n7 Покрытие, кроме опоры поз. 1 и труб поз. 2, 3: эмаль ПФ-115 (2)\n- сварной шоб № 2 электродом 3ЭА-395/9 ОСТ В5Р.9574-81,\n- сбарные шбы № 5 аргонодуговым способом проболокоц\n2 Контроль качество сбарных соединении быполнить по ХУ!\nкомплексу контроля ОСТ 5Р.9654-2015. Нормы оценки качества по\n3 * Размеры для спрабок.\nВзаимное росположение поза Д трубы поз. 5, лыски Ж опоры поз. 1 ц\nплуты поз. 4& по чертежу.\n5 Допуск перпендекулярности труд поз. 2, 5 относительно\nГ (1:1)\nД й квалиф ЭЦП | Д й квалиф й ЭЦП\nдокумент подписан усиленнои квалифицированнои Сертификат : 032а1960006сае3297464а? а а1а59ееа\nВладелец подписи : Морозова Дарья Валерьевна Действительно с 22.06.2022 до 22.09.2023\nЛист. №докцм. |Подп. |Дата П\n10 Версии: 093 6-1256-6407-0272-1013<#57055е Копировал СВС: 041А2687 Формат АёхЁ\n'''\nfiltered = TextLayerPdfProcessor._filter_requirement_lines(sample)\nprint(filtered)\nprint('\\n--- metadata blocked? ---')\nfor needle in ['документ подписан', 'владелец подписи', 'лист', 'формат']:\n    print(needle, needle in filtered.lower())\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "tighten final acceptance criteria for requirement lines",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\nold = '''        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        return False\n'''\nnew = '''        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        if re.match(r\"^[A-ZА-ЯЁ]\\s*\\(\\d+:\\d+\\)\", upper):\n            return True\n        if re.match(r\"^[:.;/|\\\\-]+\", text):\n            return True\n        return False\n'''\nif old not in text:\n    raise SystemExit('first target not found')\ntext = text.replace(old, new)\nold2 = '''            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:\n                continue\n\n            if has_requirement_keyword or len(candidate) >= 25:\n                if len(candidate) > 120 and not has_strong_requirement_marker and not has_requirement_keyword:\n                    continue\n                kept.append(candidate)\n'''\nnew2 = '''            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if has_requirement_keyword and not has_strong_requirement_marker and not continuation:\n                continue\n\n            if not (has_requirement_keyword or has_strong_requirement_marker or continuation):\n                continue\n            kept.append(candidate)\n'''\nif old2 not in text:\n    raise SystemExit('second target not found')\ntext = text.replace(old2, new2)\npath.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect final filter section after attempted patch",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor j in range(252,380):\n    if j <= len(lines):\n        print(f'{j}: {lines[j-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "replace filter section completely with stricter requirement logic",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\nstart = text.index('    @staticmethod\\n    def _is_noise_line')\nend = text.index('    @staticmethod\\n    def _looks_like_requirement_block')\nreplacement = '''    @staticmethod\n    def _is_noise_line(line):\n        text = re.sub(r\"\\s+\", \" \", str(line or \"\")).strip()\n        if not text:\n            return True\n        upper = text.upper()\n        if len(text) < 3:\n            return True\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n            return True\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"CRC\",\n            \"ID ВЕРСИИ\",\n            \"ИНФОРМАЦИЯ\",\n            \"ПОДТ.\",\n            \"РАЗРАБ.\",\n            \"ПРОВ.\",\n            \"Н.КОНТР.\",\n            \"Т.КОНТР.\",\n            \"ИЗМ.\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"КЛАБ \",\n            \"ВЕРСИИ\",\n            \"КРАТКИЙ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n            return True\n        if re.fullmatch(r\"[0-9A-F]{8,}\", upper):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", text):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", text):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        if re.match(r\"^[A-ZА-ЯЁ]\\s*\\(\\d+:\\d+\\)\", upper):\n            return True\n        if re.match(r\"^[:.;/|\\\\-]+\", text):\n            return True\n        return False\n\n    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n\n            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n                \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n                \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n                \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\"\n            )\n            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if not body:\n                    continue\n                short_numbered_noise = (\n                    len(body) <= 18\n                    and not has_requirement_keyword\n                    and not re.search(r\"[A-Za-zА-ЯЁ]{4,}\", body)\n                )\n                if short_numbered_noise:\n                    continue\n                kept.append(candidate)\n                continue\n\n            last_kept = kept[-1] if kept else \"\"\n            previous_numbered = bool(re.match(r\"^\\d\", last_kept))\n            reference_prefixes = (\"ГОСТ \", \"ОСТ \", \"ТУ \", \"СТАЛЬ \", \"МАТЕРИАЛ \", \"CRC\", \"A4\", \"A3\", \"A5\", \"ID ВЕРСИИ\")\n            reference_like = candidate.upper().startswith(reference_prefixes)\n            continuation = (\n                bool(kept)\n                and previous_numbered\n                and not re.match(r\"^\\d\", candidate)\n                and not reference_like\n                and not TextLayerPdfProcessor._is_noise_line(candidate)\n            )\n            if continuation:\n                kept.append(candidate)\n                continue\n            if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                continue\n            if not (has_letters and has_numeric):\n                continue\n\n            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\",\n                \"ПРОХОЖДЕНИЕ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if not (has_requirement_keyword or has_strong_requirement_marker):\n                continue\n            kept.append(candidate)\n\n        return \"\\n\".join(kept)\n\n'''\ntext = text[:start] + replacement + text[end:]\npath.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "final verification of filter and admin regression suite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect syntax error area in pdf_processors.py",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && sed -n '250,340p' pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "repair filter code with clean multiline replacement",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\nstart = text.index('    @staticmethod\\n    def _is_noise_line')\nend = text.index('    @staticmethod\\n    def _looks_like_requirement_block')\nnew_chunk = r'''    @staticmethod\n    def _is_noise_line(line):\n        text = re.sub(r\"\\s+\", \" \", str(line or \"\")).strip()\n        if not text:\n            return True\n        upper = text.upper()\n        if len(text) < 3:\n            return True\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n        if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\"):\n            return True\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"CRC\",\n            \"ID ВЕРСИИ\",\n            \"ИНФОРМАЦИЯ\",\n            \"ПОДТ.\",\n            \"РАЗРАБ.\",\n            \"ПРОВ.\",\n            \"Н.КОНТР.\",\n            \"Т.КОНТР.\",\n            \"ИЗМ.\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"КЛАБ \",\n            \"ВЕРСИИ\",\n            \"КРАТКИЙ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if upper.startswith(\"A4\") or upper.startswith(\"A3\") or upper.startswith(\"A5\"):\n            return True\n        if re.fullmatch(r\"[0-9A-F]{8,}\", upper):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", text):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", text):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", text):\n            return True\n        if re.match(r\"^[A-ZА-ЯЁ]\\s*\\(\\d+:\\d+\\)\", upper):\n            return True\n        if re.match(r\"^[:.;/|\\\\-]+\", text):\n            return True\n        return False\n\n    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n\n            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n                \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n                \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n                \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\"\n            )\n            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if not body:\n                    continue\n                short_numbered_noise = (\n                    len(body) <= 18\n                    and not has_requirement_keyword\n                    and not re.search(r\"[A-Za-zА-ЯЁ]{4,}\", body)\n                )\n                if short_numbered_noise:\n                    continue\n                kept.append(candidate)\n                continue\n\n            last_kept = kept[-1] if kept else \"\"\n            previous_numbered = bool(re.match(r\"^\\d\", last_kept))\n            reference_prefixes = (\"ГОСТ \", \"ОСТ \", \"ТУ \", \"СТАЛЬ \", \"МАТЕРИАЛ \", \"CRC\", \"A4\", \"A3\", \"A5\", \"ID ВЕРСИИ\")\n            reference_like = candidate.upper().startswith(reference_prefixes)\n            continuation = (\n                bool(kept)\n                and previous_numbered\n                and not re.match(r\"^\\d\", candidate)\n                and not reference_like\n                and not TextLayerPdfProcessor._is_noise_line(candidate)\n            )\n            if continuation:\n                kept.append(candidate)\n                continue\n            if re.match(r\"^(?:СТАЛЬ|МАТЕРИАЛ)\\b\", candidate, flags=re.IGNORECASE):\n                continue\n            if not (has_letters and has_numeric):\n                continue\n\n            strong_requirement_markers = (\n                \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n                \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n                \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n                \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\",\n                \"ПРОХОЖДЕНИЕ\"\n            )\n            has_strong_requirement_marker = any(marker in upper for marker in strong_requirement_markers)\n            if not (has_requirement_keyword or has_strong_requirement_marker):\n                continue\n            kept.append(candidate)\n\n        return \"\\n\".join(kept)\n\n'''\ntext = text[:start] + new_chunk + text[end:]\npath.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify syntax and test results after repair",
+			"type": "shell",
+			"command": "python - <<'PY'\nfrom pathlib import Path\np = Path('pdf_processors.py')\ntext = p.read_text()\nprint('HAS_BAD_QUOTE', 'replace(\"\\n\")' in text or 'replace(\\n)' in text)\nprint('LEN', len(text))\nfor pattern in ['def _filter_requirement_lines', 'КЛАБ.', 'ПРОХОЖДЕНИЕ']:\n    print(pattern, pattern in text)\nPY\ncd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "extract embedded numbered requirement fragments from noisy OCR lines",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\nold = '''            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nnew = '''            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            if not re.match(r\"^\\d\", candidate):\n                embedded_number_match = re.search(r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\", candidate)\n                if embedded_number_match and not any(token in candidate.upper() for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЛИСТ\", \"ПОДПИСИ\", \"ФОРМАТ\", \"ВЕРСИИ\")):\n                    body = (embedded_number_match.group(\"body\") or \"\").strip()\n                    candidate = f\"{embedded_number_match.group('num')} {body}\".strip()\n                    upper = candidate.upper()\n                    has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nif old not in text:\n    raise SystemExit('anchor not found')\npath.write_text(text.replace(old, new))\nPY\npython -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify final filter with regression and admin tests",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect OCR processor implementation",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nfor fn in ['ocr_processor.py','pdf_processors.py']:\n    print(f'===== {fn} =====')\n    text = Path(fn).read_text(errors='ignore')\n    lines = text.splitlines()\n    for i,l in enumerate(lines,1):\n        if 'OCR' in l or 'convert_from_bytes' in l or 'pytesseract' in l or 'image_to_string' in l or 'process' in l and 'pdf' in l.lower():\n            start=max(1,i-10); end=min(len(lines),i+30)\n            for j in range(start,end+1):\n                print(f'{j}: {lines[j-1]}')\n            print('---')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show OCR sections in source",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && echo '=== ocr_processor.py ===' && sed -n '1,220p' ocr_processor.py && echo '=== pdf_processors OCR block ===' && sed -n '170,220p' pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "add OCR block extraction regression test",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nneedle = '    def test_text_layer_filters_noise(self):\\n'\ninsert = '''    def test_ocr_extracts_requirement_blocks_and_skips_metadata(self):\n        sample = {\n            \"text\": [\n                \"\", \"1\", \"СВарку\", \"Выполнить\", \"по\", \"произв.\",\n                \"6\", \"После\", \"сварки\", \"контролировать\",\n                \"\", \"Лист\", \"№\", \"докум.\",\n                \"\", \"Формат\", \"A3\"\n            ],\n            \"conf\": [\"-1\", \"93\", \"92\", \"92\", \"90\", \"82\", \"94\", \"93\", \"92\", \"90\", \"-1\", \"0\", \"0\", \"0\", \"-1\", \"0\", \"0\"],\n            \"left\": [0, 10, 20, 70, 100, 150, 0, 10, 80, 150, 0, 20, 40, 60, 0, 10, 30],\n            \"top\": [0, 10, 10, 10, 10, 10, 40, 40, 40, 40, 200, 200, 200, 200, 260, 260, 260],\n            \"width\": [0, 20, 40, 60, 20, 40, 20, 60, 120, 100, 20, 30, 40, 50, 30, 40, 30],\n            \"height\": [0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],\n        }\n        blocks = OCRPdfProcessor._extract_requirement_blocks(sample)\n        self.assertTrue(any(\"1 СВарку Выполнить\" in block for block in blocks))\n        self.assertFalse(any(\"Лист\" in block for block in blocks))\n        self.assertFalse(any(\"Формат\" in block for block in blocks))\n\\n    def test_text_layer_filters_noise(self):\\n'''\nif 'test_ocr_extracts_requirement_blocks_and_skips_metadata' not in text:\n    text = text.replace(needle, insert)\n    path.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run OCR extraction test before production fix",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "patch OCR block extraction and requirement filter",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\n\n# Update test imports\npath = Path('tests/test_pdf_processing.py')\ntext = path.read_text()\nif 'OCRPdfProcessor' not in text:\n    text = text.replace('from pdf_processors import PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage', 'from pdf_processors import OCRPdfProcessor, PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage')\n    path.write_text(text)\n\n# Patch pdf_processors.py\npath = Path('pdf_processors.py')\ntext = path.read_text()\nold = '''class OCRPdfProcessor(BasePdfProcessor):\n    \"\"\"OCR-процессор для .dwg.pdf.\"\"\"\n\n    @classmethod\n    def supports(cls, file_name):\n        name = str(file_name or \"\").lower()\n        return \".dwg.pdf\" in name or name.endswith(\".dwg.pdf\")\n\n    def process(self, pdf_bytes, source_name=\"\"):\n        if cv2 is None or np is None or pytesseract is None or convert_from_bytes is None:\n            raise RuntimeError(\"Для OCR требуется cv2 / numpy / pytesseract / pdf2image\")\n\n        logger.info(f\"OCRPdfProcessor: обработка файла {source_name or 'без имени'}\")\n        pages = convert_from_bytes(pdf_bytes, dpi=300)\n        if not pages:\n            raise RuntimeError(\"Не удалось конвертировать PDF в изображения\")\n\n        image = np.array(pages[0])\n        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n        gray = cv2.GaussianBlur(gray, (3, 3), 0)\n        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n        custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n        text = pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()\n        cleaned = self._clean_ocr_text(text)\n        if cleaned:\n            logger.info(\n                \"OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.\",\n                source_name or 'без имени',\n            )\n        return {\n            \"text\": cleaned,\n            \"blocks\": [{\"text\": cleaned, \"source\": source_name}],\n            \"blocks_data\": {\"block_1\": {\"text\": cleaned, \"source\": source_name}},\n        }\n\n    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\r+\", \"\\n\", text)\n        filtered = filtered.replace(\"\\xa0\", \" \")\n        filtered = re.sub(r\"\\n{3,}\", \"\\n\\n\", filtered)\n        return filtered.strip()\n'''\nnew = '''class OCRPdfProcessor(BasePdfProcessor):\n    \"\"\"OCR-процессор для .dwg.pdf.\"\"\"\n\n    @classmethod\n    def supports(cls, file_name):\n        name = str(file_name or \"\").lower()\n        return \".dwg.pdf\" in name or name.endswith(\".dwg.pdf\")\n\n    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\r+\", \"\\n\", text)\n        filtered = filtered.replace(\"\\xa0\", \" \")\n        filtered = re.sub(r\"\\n{3,}\", \"\\n\\n\", filtered)\n        return filtered.strip()\n\n    @staticmethod\n    def _is_noise_ocr_fragment(text):\n        value = re.sub(r\"\\s+\", \" \", str(text or \"\")).strip()\n        if not value:\n            return True\n        upper = value.upper()\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"ВЕРСИИ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", value):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", value):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", value):\n            return True\n        return False\n\n    @classmethod\n    def _extract_requirement_blocks(cls, ocr_data):\n        if not isinstance(ocr_data, dict):\n            return []\n\n        text_values = list(ocr_data.get(\"text\") or [])\n        conf_values = list(ocr_data.get(\"conf\") or [])\n        left_values = list(ocr_data.get(\"left\") or [])\n        top_values = list(ocr_data.get(\"top\") or [])\n        if not text_values:\n            return []\n\n        grouped = {}\n        for idx, raw_text in enumerate(text_values):\n            cleaned = str(raw_text or \"\").strip()\n            if not cleaned:\n                continue\n            try:\n                conf = int(str(conf_values[idx]) if idx < len(conf_values) else \"0\")\n            except Exception:\n                conf = 0\n            if conf < 0:\n                continue\n            top = int(str(top_values[idx]) if idx < len(top_values) else \"0\")\n            left = int(str(left_values[idx]) if idx < len(left_values) else \"0\")\n            line_key = (top // 10, left // 50)\n            grouped.setdefault(line_key, []).append((cleaned, conf, top))\n\n        blocks = []\n        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):\n            line = \" \".join(part for part, _, _ in sorted(entries, key=lambda item: item[2]))\n            clean = re.sub(r\"\\s+\", \" \", line).strip()\n            if not clean or cls._is_noise_ocr_fragment(clean):\n                continue\n            upper = clean.upper()\n            if not (any(ch.isdigit() for ch in clean) and any(ch.isalpha() for ch in clean)):\n                continue\n            if any(token in upper for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЭЦП\", \"ЛИСТ\", \"ФОРМАТ\", \"ВЕРСИИ\", \"КОПИРОВАЛ\")):\n                continue\n            blocks.append(clean)\n\n        if not blocks:\n            candidate = \"\\n\".join(\n                re.sub(r\"\\s+\", \" \", str(item or \"\")).strip()\n                for item in text_values if str(item or \"\").strip()\n            )\n            candidate = cls._clean_ocr_text(candidate)\n            if candidate:\n                blocks = [candidate]\n        return blocks\n\n    def process(self, pdf_bytes, source_name=\"\"):\n        if cv2 is None or np is None or pytesseract is None or convert_from_bytes is None:\n            raise RuntimeError(\"Для OCR требуется cv2 / numpy / pytesseract / pdf2image\")\n\n        logger.info(f\"OCRPdfProcessor: обработка файла {source_name or 'без имени'}\")\n        pages = convert_from_bytes(pdf_bytes, dpi=300)\n        if not pages:\n            raise RuntimeError(\"Не удалось конвертировать PDF в изображения\")\n\n        blocks = []\n        for page in pages:\n            image = np.array(page)\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n            try:\n                ocr_data = pytesseract.image_to_data(binary, lang=\"rus\", config=custom_config, output_type=pytesseract.Output.DICT)\n            except Exception:\n                ocr_data = {\n                    \"text\": [pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()],\n                    \"conf\": [\"0\"],\n                    \"left\": [0],\n                    \"top\": [0],\n                }\n            page_blocks = self._extract_requirement_blocks(ocr_data)\n            if page_blocks:\n                blocks.extend(page_blocks)\n\n        if not blocks:\n            image = np.array(pages[0])\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n            text = pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()\n            blocks = [self._clean_ocr_text(text)] if self._clean_ocr_text(text) else []\n\n        cleaned = self._clean_ocr_text(\"\\n\\n\".join(blocks)).strip()\n        if cleaned:\n            logger.info(\n                \"OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.\",\n                source_name or 'без имени',\n            )\n        return {\n            \"text\": cleaned,\n            \"blocks\": [{\"text\": block, \"source\": source_name} for block in blocks if block],\n            \"blocks_data\": {f\"block_{idx + 1}\": {\"text\": block, \"source\": source_name} for idx, block in enumerate(blocks) if block},\n        }\n'''\nif old not in text:\n    raise SystemExit('OCR block anchor not found')\ntext = text.replace(old, new)\n\n# patch requirement filter to keep embedded numbered requirement lines and more OCR variants\nold2 = '''            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\", \"ФОСФОР\",\n                \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\", \"МАССОВОЙ\",\n                \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\"\n            )\n            has_requirement_keyword = any(re.search(rf\"\\b{re.escape(keyword)}\\b\", upper) is not None for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nnew2 = '''            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРКУ\", \"СВАРНЫ\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\", \"ФОСФОР\",\n                \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\", \"МАССОВОЙ\",\n                \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\",\n                \"КОНТРОЛИРОВАТЬ\", \"ВЫПОЛНИТЬ\", \"ПРОХОЖДЕНИЕ\", \"ДОПУСК\"\n            )\n            has_requirement_keyword = any(re.search(rf\"\\b{re.escape(keyword)}\\b\", upper) is not None for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            if not re.match(r\"^\\d\", candidate):\n                embedded = re.search(r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\", candidate, flags=re.IGNORECASE)\n                if embedded and not any(token in candidate.upper() for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЛИСТ\", \"ФОРМАТ\", \"ВЕРСИИ\", \"КОПИРОВАЛ\")):\n                    candidate = f\"{embedded.group('num')} {embedded.group('body')}\".strip()\n                    upper = candidate.upper()\n                    has_requirement_keyword = any(re.search(rf\"\\b{re.escape(keyword)}\\b\", upper) is not None for keyword in keyword_patterns)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nif old2 in text:\n    text = text.replace(old2, new2)\n\n# ensure there isn't duplicate _looks_like_requirement_block methods in the file by deduplicating\ntext = text.replace('''    @staticmethod\n    def _looks_like_requirement_block(text):\n        if not text:\n            return False\n        cleaned = TextLayerPdfProcessor._filter_requirement_lines(text)\n        return bool(cleaned)\n    @staticmethod\n    def _looks_like_requirement_block(text):\n        if not text:\n            return False\n        cleaned = TextLayerPdfProcessor._filter_requirement_lines(text)\n        return bool(cleaned)\n''', '''    @staticmethod\n    def _looks_like_requirement_block(text):\n        if not text:\n            return False\n        cleaned = TextLayerPdfProcessor._filter_requirement_lines(text)\n        return bool(cleaned)\n''')\n\npath.write_text(text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "verify OCR block and requirement logic with pytest",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect test import and relevant patch state",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && sed -n '1,25p' tests/test_pdf_processing.py && echo '---' && python - <<'PY'\nfrom pathlib import Path\ntext = Path('pdf_processors.py').read_text(errors='ignore')\nprint('OCRPdfProcessor' in text)\nfor s in ['_extract_requirement_blocks', 'embedded = re.search', 'СВАРКУ']:\n    print(s, s in text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read actual OCR class block for clean rewrite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && sed -n '170,260p' pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "read exact filter section source for patching",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && sed -n '250,380p' pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "apply final OCR and filter corrections",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\n\n# 1) import OCRPdfProcessor in tests\np = Path('tests/test_pdf_processing.py')\ntext = p.read_text()\nold = 'from pdf_processors import PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage'\nnew = 'from pdf_processors import OCRPdfProcessor, PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage'\nif old in text and 'OCRPdfProcessor' not in text:\n    text = text.replace(old, new)\n    p.write_text(text)\n\n# 2) rewrite OCRPdfProcessor block exactly\np = Path('pdf_processors.py')\ntext = p.read_text()\nstart = text.index('class OCRPdfProcessor(BasePdfProcessor):')\nend = text.index('class TextLayerPdfProcessor(BasePdfProcessor):')\nnew_block = '''class OCRPdfProcessor(BasePdfProcessor):\n    \"\"\"OCR-процессор для .dwg.pdf.\"\"\"\n\n    @classmethod\n    def supports(cls, file_name):\n        name = str(file_name or \"\").lower()\n        return \".dwg.pdf\" in name or name.endswith(\".dwg.pdf\")\n\n    @staticmethod\n    def _is_noise_ocr_fragment(text):\n        value = re.sub(r\"\\s+\", \" \", str(text or \"\")).strip()\n        if not value:\n            return True\n        upper = value.upper()\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"ВЕРСИИ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", value):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", value):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", value):\n            return True\n        return False\n\n    @classmethod\n    def _extract_requirement_blocks(cls, ocr_data):\n        if not isinstance(ocr_data, dict):\n            return []\n\n        text_values = list(ocr_data.get(\"text\") or [])\n        conf_values = list(ocr_data.get(\"conf\") or [])\n        left_values = list(ocr_data.get(\"left\") or [])\n        top_values = list(ocr_data.get(\"top\") or [])\n        if not text_values:\n            return []\n\n        grouped = {}\n        for idx, raw_text in enumerate(text_values):\n            cleaned = str(raw_text or \"\").strip()\n            if not cleaned:\n                continue\n            try:\n                conf = int(str(conf_values[idx]) if idx < len(conf_values) else \"0\")\n            except Exception:\n                conf = 0\n            if conf < 0:\n                continue\n            top = int(str(top_values[idx]) if idx < len(top_values) else \"0\")\n            left = int(str(left_values[idx]) if idx < len(left_values) else \"0\")\n            line_key = (top // 10, left // 50)\n            grouped.setdefault(line_key, []).append((cleaned, conf, top))\n\n        blocks = []\n        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):\n            line = \" \".join(part for part, _, _ in sorted(entries, key=lambda item: item[2]))\n            clean = re.sub(r\"\\s+\", \" \", line).strip()\n            if not clean or cls._is_noise_ocr_fragment(clean):\n                continue\n            upper = clean.upper()\n            if not (any(ch.isdigit() for ch in clean) and any(ch.isalpha() for ch in clean)):\n                continue\n            if any(token in upper for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЭЦП\", \"ЛИСТ\", \"ФОРМАТ\", \"ВЕРСИИ\", \"КОПИРОВАЛ\")):\n                continue\n            blocks.append(clean)\n\n        if not blocks:\n            candidate = \"\\n\".join(\n                re.sub(r\"\\s+\", \" \", str(item or \"\")).strip()\n                for item in text_values if str(item or \"\").strip()\n            )\n            candidate = cls._clean_ocr_text(candidate)\n            if candidate:\n                blocks = [candidate]\n        return blocks\n\n    def process(self, pdf_bytes, source_name=\"\"):\n        if cv2 is None or np is None or pytesseract is None or convert_from_bytes is None:\n            raise RuntimeError(\"Для OCR требуется cv2 / numpy / pytesseract / pdf2image\")\n\n        logger.info(f\"OCRPdfProcessor: обработка файла {source_name or 'без имени'}\")\n        pages = convert_from_bytes(pdf_bytes, dpi=300)\n        if not pages:\n            raise RuntimeError(\"Не удалось конвертировать PDF в изображения\")\n\n        blocks = []\n        for page in pages:\n            image = np.array(page)\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n            try:\n                ocr_data = pytesseract.image_to_data(binary, lang=\"rus\", config=custom_config, output_type=pytesseract.Output.DICT)\n            except Exception:\n                ocr_data = {\"text\": [pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()]}\n            page_blocks = self._extract_requirement_blocks(ocr_data)\n            if page_blocks:\n                blocks.extend(page_blocks)\n\n        if not blocks:\n            image = np.array(pages[0])\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n            text = pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()\n            cleaned = self._clean_ocr_text(text)\n            if cleaned:\n                blocks = [cleaned]\n\n        cleaned = self._clean_ocr_text(\"\\n\\n\".join(blocks)).strip()\n        if cleaned:\n            logger.info(\n                \"OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.\",\n                source_name or 'без имени',\n            )\n        return {\n            \"text\": cleaned,\n            \"blocks\": [{\"text\": block, \"source\": source_name} for block in blocks if block],\n            \"blocks_data\": {f\"block_{idx + 1}\": {\"text\": block, \"source\": source_name} for idx, block in enumerate(blocks) if block},\n        }\n\n    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\r+\", \"\\n\", text)\n        filtered = filtered.replace(\"\\xa0\", \" \")\n        filtered = re.sub(r\"\\n{3,}\", \"\\n\\n\", filtered)\n        return filtered.strip()\n\n'''\ntext = text[:start] + new_block + text[end:]\n\n# 3) add embedded number logic and keyword variants in TextLayer filter\nold = '''            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n                \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n                \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n                \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\"\n            )\n            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            if not re.match(r\"^\\d\", candidate):\n                embedded_number_match = re.search(r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\", candidate)\n                if embedded_number_match and not any(token in candidate.upper() for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЛИСТ\", \"ПОДПИСИ\", \"ФОРМАТ\", \"ВЕРСИИ\")):\n                    body = (embedded_number_match.group(\"body\") or \"\").strip()\n                    candidate = f\"{embedded_number_match.group('num')} {body}\".strip()\n                    upper = candidate.upper()\n                    has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nnew = '''            keyword_patterns = (\n                \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n                \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРКУ\", \"СВАРНЫ\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n                \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n                \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n                \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n                \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n                \"ВЫПОЛНИТЬ\", \"КОНТРОЛИРОВАТЬ\"\n            )\n            has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n            has_numeric = any(ch.isdigit() for ch in candidate)\n            has_letters = any(ch.isalpha() for ch in candidate)\n\n            if not re.match(r\"^\\d\", candidate):\n                embedded_number_match = re.search(r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\", candidate, flags=re.IGNORECASE)\n                if embedded_number_match and not any(token in candidate.upper() for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЛИСТ\", \"ПОДПИСИ\", \"ФОРМАТ\", \"ВЕРСИИ\", \"КОПИРОВАЛ\")):\n                    body = (embedded_number_match.group(\"body\") or \"\").strip()\n                    candidate = f\"{embedded_number_match.group('num')} {body}\".strip()\n                    upper = candidate.upper()\n                    has_requirement_keyword = any(keyword in upper for keyword in keyword_patterns)\n\n            numbered_match = re.match(r\"^(?:[-*•\\s]*)(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>.+)$\", candidate)\n'''\nif old in text:\n    text = text.replace(old, new)\n    p.write_text(text)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run final OCR+filter regression verification",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect broken file around syntax issue",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && sed -n '200,290p' pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "rewrite OCR class completely and fix test import",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\n\n# Fix tests import\np = Path('tests/test_pdf_processing.py')\ntext = p.read_text()\nneedle = 'from pdf_processors import PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage'\nreplacement = 'from pdf_processors import OCRPdfProcessor, PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage'\nif needle in text and 'OCRPdfProcessor' not in text:\n    text = text.replace(needle, replacement)\n    p.write_text(text)\n\n# Rewrite OCR class block\np = Path('pdf_processors.py')\ntext = p.read_text()\nstart = text.index('class OCRPdfProcessor(BasePdfProcessor):')\nend = text.index('class TextLayerPdfProcessor(BasePdfProcessor):')\nnew_block = '''class OCRPdfProcessor(BasePdfProcessor):\n    \"\"\"OCR-процессор для .dwg.pdf.\"\"\"\n\n    @staticmethod\n    def _is_noise_ocr_fragment(text):\n        value = re.sub(r\"\\s+\", \" \", str(text or \"\")).strip()\n        if not value:\n            return True\n        upper = value.upper()\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"ВЕРСИИ\",\n        )\n        if any(token in upper for token in metadata_tokens):\n            return True\n        if re.fullmatch(r\"[\\W_]+\", value):\n            return True\n        if re.fullmatch(r\"[-=|/\\\\]+\", value):\n            return True\n        if re.fullmatch(r\"[A-ZА-ЯЁ]{1,3}\", value):\n            return True\n        return False\n\n    @classmethod\n    def _extract_requirement_blocks(cls, ocr_data):\n        if not isinstance(ocr_data, dict):\n            return []\n\n        text_values = list(ocr_data.get(\"text\") or [])\n        conf_values = list(ocr_data.get(\"conf\") or [])\n        left_values = list(ocr_data.get(\"left\") or [])\n        top_values = list(ocr_data.get(\"top\") or [])\n        if not text_values:\n            return []\n\n        grouped = {}\n        for idx, raw_text in enumerate(text_values):\n            cleaned = str(raw_text or \"\").strip()\n            if not cleaned:\n                continue\n            try:\n                conf = int(str(conf_values[idx]) if idx < len(conf_values) else \"0\")\n            except Exception:\n                conf = 0\n            if conf < 0:\n                continue\n            top = int(str(top_values[idx]) if idx < len(top_values) else \"0\")\n            left = int(str(left_values[idx]) if idx < len(left_values) else \"0\")\n            line_key = (top // 10, left // 50)\n            grouped.setdefault(line_key, []).append((cleaned, conf, top))\n\n        blocks = []\n        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):\n            line = \" \".join(part for part, _, _ in sorted(entries, key=lambda item: item[2]))\n            clean = re.sub(r\"\\s+\", \" \", line).strip()\n            if not clean or cls._is_noise_ocr_fragment(clean):\n                continue\n            upper = clean.upper()\n            if not (any(ch.isdigit() for ch in clean) and any(ch.isalpha() for ch in clean)):\n                continue\n            if any(token in upper for token in (\"ДОКУМЕНТ ПОДПИСАН\", \"СЕРТИФИКАТ\", \"ЭЦП\", \"ЛИСТ\", \"ФОРМАТ\", \"ВЕРСИИ\", \"КОПИРОВАЛ\")):\n                continue\n            blocks.append(clean)\n\n        if not blocks:\n            candidate = \"\\\\n\".join(\n                re.sub(r\"\\s+\", \" \", str(item or \"\")).strip()\n                for item in text_values if str(item or \"\").strip()\n            )\n            candidate = OCRPdfProcessor._clean_ocr_text(candidate)\n            if candidate:\n                blocks = [candidate]\n        return blocks\n\n    @classmethod\n    def supports(cls, file_name):\n        name = str(file_name or \"\").lower()\n        return \".dwg.pdf\" in name or name.endswith(\".dwg.pdf\")\n\n    def process(self, pdf_bytes, source_name=\"\"):\n        if cv2 is None or np is None or pytesseract is None or convert_from_bytes is None:\n            raise RuntimeError(\"Для OCR требуется cv2 / numpy / pytesseract / pdf2image\")\n\n        logger.info(f\"OCRPdfProcessor: обработка файла {source_name or 'без имени'}\")\n        pages = convert_from_bytes(pdf_bytes, dpi=300)\n        if not pages:\n            raise RuntimeError(\"Не удалось конвертировать PDF в изображения\")\n\n        blocks = []\n        for page in pages:\n            image = np.array(page)\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            custom_config = r\"--psm 6 -c preserve_interword_spaces=1\"\n            try:\n                ocr_data = pytesseract.image_to_data(binary, lang=\"rus\", config=custom_config, output_type=pytesseract.Output.DICT)\n            except Exception:\n                ocr_data = {\"text\": [pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config).strip()]}\n            page_blocks = self._extract_requirement_blocks(ocr_data)\n            if page_blocks:\n                blocks.extend(page_blocks)\n\n        if not blocks:\n            image = np.array(pages[0])\n            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n            gray = cv2.GaussianBlur(gray, (3, 3), 0)\n            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n            text = pytesseract.image_to_string(binary, lang=\"rus\", config=custom_config if 'custom_config' in locals() else r\"--psm 6 -c preserve_interword_spaces=1\").strip()\n            cleaned = self._clean_ocr_text(text)\n            if cleaned:\n                blocks = [cleaned]\n\n        cleaned = self._clean_ocr_text(\"\\\\n\\\\n\".join(blocks)).strip()\n        if cleaned:\n            logger.info(\n                \"OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.\",\n                source_name or 'без имени',\n            )\n        return {\n            \"text\": cleaned,\n            \"blocks\": [{\"text\": block, \"source\": source_name} for block in blocks if block],\n            \"blocks_data\": {f\"block_{idx + 1}\": {\"text\": block, \"source\": source_name} for idx, block in enumerate(blocks) if block},\n        }\n\n    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\r+\", \"\\n\", text)\n        filtered = filtered.replace(\"\\xa0\", \" \")\n        filtered = re.sub(r\"\\n{3,}\", \"\\n\\n\", filtered)\n        return filtered.strip()\n\n'''\ntext = text[:start] + new_block + text[end:]\np.write_text(text)\nPY\npython -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "final verification after rewrite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py tests/test_admin_app.py -q; echo EXIT:$?",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "locate broken literal newline patterns in pdf_processors.py",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\ntext = Path('pdf_processors.py').read_text(errors='ignore')\nfor i, line in enumerate(text.splitlines(), 1):\n    if 're.sub(r\"' in line or 'candidate = \"' in line or 'filtered = re.sub(r\"' in line:\n        print(i, repr(line))\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect pdf processor and tests",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && printf '%s\\n' '--- pdf_processors 1-220 ---' && sed -n '1,220p' pdf_processors.py && printf '\\n--- pdf_processors 220-420 ---\\n' && sed -n '220,420p' pdf_processors.py && printf '\\n--- tests ---\\n' && sed -n '1,220p' tests/test_pdf_processing.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show exact OCR section around syntax error",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && nl -ba pdf_processors.py | sed -n '140,320p'",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "print OCR snippet to terminal",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor start,end in [(150,180),(200,260),(260,320),(320,340)]:\n    print(f'--- {start}-{end} ---')\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show top of test file and relevant filter logic",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('tests/test_pdf_processing.py').read_text().splitlines()\nfor start,end in [(1,120),(120,220),(220,320)]:\n    print(f'--- {start}-{end} ---')\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show exact imports in test file",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nfor i,line in enumerate(Path('tests/test_pdf_processing.py').read_text().splitlines()[:25],1):\n    print(f'{i}: {line}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show assertion lines for OCR and filter rules",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('tests/test_pdf_processing.py').read_text().splitlines()\nfor i,line in enumerate(lines,1):\n    if 'material' in line.lower() or 'ocr' in line.lower() or 'requirement' in line.lower() or 'metadata' in line.lower() or 'dwg' in line.lower() or 'filter' in line.lower():\n        print(f'{i}: {line}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "print relevant test assertions",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('tests/test_pdf_processing.py').read_text().splitlines()\nfor start,end in [(90,170)]:\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show TextLayer filter implementation around requirement detection",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor start,end in [(320,430),(430,560)]:\n    print(f'--- {start}-{end} ---')\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show exact filter lines 340-460",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor start,end in [(340,390),(390,460)]:\n    print(f'--- {start}-{end} ---')\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "print rest of filter implementation",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor i in range(460,560):\n    if i <= len(lines):\n        print(f'{i}: {lines[i-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "repair OCR syntax and add OCR import for tests",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\n\n# Fix OCR clean method literal\npath = Path('pdf_processors.py')\ntext = path.read_text()\nold = '''    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\n +\", \"\n \", text)\n        filtered = filtered.replace(\" \", \" \")\n        filtered = re.sub(r\"\n {3,}\", \"\n\n\", filtered)\n        return filtered.strip()\n'''\nnew = '''    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\r+\", \"\\n\", text)\n        filtered = filtered.replace(\"\\xa0\", \" \")\n        filtered = re.sub(r\"\\n{3,}\", \"\\n\\n\", filtered)\n        return filtered.strip()\n'''\nif old in text:\n    text = text.replace(old, new)\n\n# Ensure tests import OCRPdfProcessor explicitly.\npath_test = Path('tests/test_pdf_processing.py')\ntext_test = path_test.read_text()\nif 'from pdf_processors import OCRPdfProcessor' not in text_test:\n    text_test = text_test.replace(\n        'from pdf_processors import PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage',\n        'from pdf_processors import OCRPdfProcessor, PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage'\n    )\n    path_test.write_text(text_test)\n\npath.write_text(text)\nPY\npython -m py_compile pdf_processors.py tests/test_pdf_processing.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show admin app tests needed for integration",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('tests/test_admin_app.py').read_text().splitlines()\nfor i,line in enumerate(lines[:220],1):\n    print(f'{i}: {line}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show admin_app implementation for integration contract",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('admin_app.py').read_text().splitlines()\nfor i,line in enumerate(lines[:220],1):\n    print(f'{i}: {line}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show admin_app start only",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nfor i,line in enumerate(Path('admin_app.py').read_text().splitlines()[:120],1):\n    print(f'{i}: {line}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show factory end of file",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor i in range(548,650):\n    if i <= len(lines):\n        print(f'{i}: {lines[i-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show factory create tail",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor i in range(646,730):\n    if i <= len(lines):\n        print(f'{i}: {lines[i-1]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "rewrite the malformed OCR cleanup block deterministically",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\n\npath = Path('pdf_processors.py')\ntext = path.read_text(errors='ignore')\nstart = text.index('    @staticmethod\\n    def _clean_ocr_text')\nend = text.index('class TextLayerPdfProcessor')\nnew_block = '''    @staticmethod\n    def _clean_ocr_text(text):\n        if not text:\n            return \"\"\n        filtered = re.sub(r\"\\\\r+\", \"\\\\n\", text)\n        filtered = filtered.replace(\"\\\\xa0\", \" \")\n        filtered = re.sub(r\"\\\\n{3,}\", \"\\\\n\\\\n\", filtered)\n        return filtered.strip()\n\n'''\ntext = text[:start] + new_block + text[end:]\npath.write_text(text)\n\n# fix tests import if missing\npath_test = Path('tests/test_pdf_processing.py')\ntext_test = path_test.read_text()\nif 'from pdf_processors import OCRPdfProcessor' not in text_test:\n    text_test = text_test.replace(\n        'from pdf_processors import PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage',\n        'from pdf_processors import OCRPdfProcessor, PdfProcessingFactory, TextLayerPdfProcessor, TokenStorage',\n    )\n    path_test.write_text(text_test)\nPY\npython -m py_compile pdf_processors.py tests/test_pdf_processing.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run pdf processing regression suite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run targeted regression with concise tail output",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q > /tmp/pdf_tests.log 2>&1; status=$?; echo EXIT:$status; tail -n 60 /tmp/pdf_tests.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect TokenStorage and factory early parts",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nlines = Path('pdf_processors.py').read_text().splitlines()\nfor start,end in [(1,120),(120,170)]:\n    print(f'--- {start}-{end} ---')\n    for i in range(start-1,min(end,len(lines))):\n        print(f'{i+1}: {lines[i]}')\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "inspect exact failing OCR and text-layer trace",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py::PdfProcessingTests::test_ocr_extracts_requirement_blocks_and_skips_metadata tests/test_pdf_processing.py::PdfProcessingTests::test_text_layer_keeps_numbered_requirements_and_rejects_doc_metadata -q > /tmp/failing_tests.log 2>&1; status=$?; echo EXIT:$status; tail -n 120 /tmp/failing_tests.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "find malformed regex snippets and the OCR block source",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\ntext = Path('pdf_processors.py').read_text()\nfor needle in ['[-=|/\\\\]+', '[-=|/\\\\]+', '[-=|/\\\\]', 're.fullmatch(r\"[-=|/\\\\]+\"', 're.fullmatch(r\"[-=|/\\\\]\"', 're.fullmatch(r\"[-=|/\"]']:\n    if needle in text:\n        print('FOUND', repr(needle))\n        idx = text.index(needle)\n        print(text[max(0, idx-80):idx+120])\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "scan for malformed regex patterns in the project",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\nfor path in Path('.').glob('*.py'):\n    txt = path.read_text(errors='ignore')\n    for bad in ['r\"[-=|/\\\\]+\"', 'r\"[-=|/\\\\]\"', 'r\"[-=|/\\\\]\"', 'r\"[-=|/\\\\]+\"', 'r\"[A-ZА-ЯЁ]{1,3}\"']:\n        pass\n    if 'r\"[-=|/\\\\]+\"' in txt or 'r\"[-=|/\\\\]\"' in txt:\n        print(path)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "fix malformed OCR regex and rewrite requirement filter logic",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\ntext = text.replace('if re.fullmatch(r\"[-=|/\\\\]+\", value):', 'if re.fullmatch(r\"[-=|/\\\\\\\\]+\", value):')\n# Replace the full text-layer filter method with a stricter numbered requirement filter.\nstart = text.index('    @staticmethod\\n    def _filter_requirement_lines')\nend = text.index('    @staticmethod\\n    def _looks_like_requirement_block')\nnew_block = '''    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"ВЕРСИИ\",\n            \"ПОДПИСИ\",\n        )\n        keyword_patterns = (\n            \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n            \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРКУ\", \"СВАРНЫ\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n            \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n            \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n            \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n            \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n            \"ВЫПОЛНИТЬ\", \"КОНТРОЛИРОВАТЬ\", \"ИСПОЛНИТЬ\", \"УСТАНОВИТЬ\"\n        )\n        strong_requirement_markers = (\n            \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n            \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n            \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n            \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n            \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\",\n            \"ПРОХОЖДЕНИЕ\", \"ВЫПОЛНИТЬ\"\n        )\n\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n            if any(token in upper for token in metadata_tokens):\n                continue\n\n            extracted = candidate\n            numbered_match = re.search(\n                r\"(?P<num>\\\\d{1,2})\\\\s*(?:[\\\\.\\\\)\\\\-]|[*•])?\\\\s*(?P<body>[A-ZА-ЯЁ].+)$\",\n                candidate,\n                flags=re.IGNORECASE,\n            )\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if body and not any(token in body.upper() for token in metadata_tokens):\n                    extracted = f\"{numbered_match.group('num')} {body}\".strip()\n\n            if not re.match(r\"^(?:[-*•\\\\s]*\\\\d)\", extracted):\n                continue\n\n            upper_extracted = extracted.upper()\n            if any(token in upper_extracted for token in metadata_tokens):\n                continue\n            if not (any(keyword in upper_extracted for keyword in keyword_patterns) or any(marker in upper_extracted for marker in strong_requirement_markers)):\n                continue\n\n            kept.append(extracted)\n\n        return \"\\\\n\".join(kept)\n\n'''\ntext = text[:start] + new_block + text[end:]\npath.write_text(text)\nPY\npython -m py_compile pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "validate OCR and requirement filter after final logic patch",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q > /tmp/pdf_tests_after_patch.log 2>&1; status=$?; echo EXIT:$status; tail -n 80 /tmp/pdf_tests_after_patch.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "rewrite text-layer filter with literal backslashes preserved",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\n# fix malformed regex literal in OCR noise detector\nif 'if re.fullmatch(r\"[-=|/\\\\]+\", value):' in text:\n    text = text.replace('if re.fullmatch(r\"[-=|/\\\\]+\", value):', 'if re.fullmatch(r\"[-=|/\\\\\\\\]+\", value):')\nelif 'if re.fullmatch(r\"[-=|/\\]+\", value):' in text:\n    text = text.replace('if re.fullmatch(r\"[-=|/\\\\]+\", value):', 'if re.fullmatch(r\"[-=|/\\\\\\\\]+\", value):')\n# replace the full method body between markers\nstart = text.index('    @staticmethod\\n    def _filter_requirement_lines')\nend = text.index('    @staticmethod\\n    def _looks_like_requirement_block')\nnew_block = r'''    @staticmethod\n    def _filter_requirement_lines(text):\n        raw_lines = str(text or \"\").replace(\"\\r\", \"\\n\").split(\"\\n\")\n        kept = []\n        metadata_tokens = (\n            \"ДОКУМЕНТ ПОДПИСАН\",\n            \"СЕРТИФИКАТ\",\n            \"ЭЦП\",\n            \"ВЛАДЕЛЕЦ ПОДПИСИ\",\n            \"ДЕЙСТВИТЕЛЬНО С\",\n            \"КОПИРОВАЛ\",\n            \"ФОРМАТ\",\n            \"ЛИСТ\",\n            \"ПОДП.\",\n            \"ДАТА\",\n            \"СВС:\",\n            \"КЛАБ.\",\n            \"ВЕРСИИ\",\n            \"ПОДПИСИ\",\n        )\n        keyword_patterns = (\n            \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\", \"ПОКРЫТИЕ\", \"РАДИУС\", \"ДИАМЕТР\",\n            \"ШЕРОХОВАТОСТЬ\", \"СВАРКА\", \"СВАРК\", \"СВАРКУ\", \"СВАРНЫ\", \"СВАРНО\", \"РЕЗЬБА\", \"ПРИМЕЧАНИЕ\",\n            \"ФОСФОР\", \"МЕДЬ\", \"ДОЛЯ\", \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"МАРКИРОВАТЬ\",\n            \"МАССОВОЙ\", \"МАССОВАЯ\", \"ПОСТАВЛЯТЬСЯ\", \"ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ\",\n            \"ДОПУСКАЕТСЯ\", \"СКОБКАХ\", \"ШРИФТОМ\", \"СБОРКЕ\", \"СБОРКИ\", \"ДОПУСК\",\n            \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\", \"ПРОХОЖДЕНИЕ\", \"РАЗМЕР\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n            \"ВЫПОЛНИТЬ\", \"КОНТРОЛИРОВАТЬ\", \"ИСПОЛНИТЬ\", \"УСТАНОВИТЬ\"\n        )\n        strong_requirement_markers = (\n            \"НЕ БОЛЕЕ\", \"НЕ МЕНЕЕ\", \"ДОПУСКАЕТСЯ\", \"МАРКИРОВАТЬ\",\n            \"РАЗМЕРЫ\", \"РАЗМЕР\", \"РАДИУС\", \"ДОПУСКИ\", \"ДОПУСК\",\n            \"ПРИМЕЧАНИЕ\", \"ПОСТАВЛЯТЬСЯ\", \"ЗАМЕНИТЕЛЬ\", \"СБОРКЕ\",\n            \"СБОРКИ\", \"ОБЕСПЕЧ\", \"ОБЩИЕ\", \"МАТЕРИАЛ-ЗАМЕНИТЕЛЬ\",\n            \"СВАРК\", \"СВАРКА\", \"ПОКРЫТИЕ\", \"ОТВЕРСТИЕ\", \"КОНТРОЛЬ\",\n            \"ПРОХОЖДЕНИЕ\", \"ВЫПОЛНИТЬ\"\n        )\n\n        for raw in raw_lines:\n            candidate = re.sub(r\"\\s+\", \" \", raw).strip()\n            if not candidate:\n                continue\n            upper = candidate.upper()\n            if upper.startswith(\"СТЕКЛОТЕКСТОЛИТ\") or (\"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper):\n                continue\n            if TextLayerPdfProcessor._is_noise_line(candidate):\n                continue\n            if any(token in upper for token in metadata_tokens):\n                continue\n\n            extracted = candidate\n            numbered_match = re.search(\n                r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\",\n                candidate,\n                flags=re.IGNORECASE,\n            )\n            if numbered_match:\n                body = (numbered_match.group(\"body\") or \"\").strip()\n                if body and not any(token in body.upper() for token in metadata_tokens):\n                    extracted = f\"{numbered_match.group('num')} {body}\".strip()\n\n            if not re.match(r\"^(?:[-*•\\s]*\\d)\", extracted):\n                continue\n\n            upper_extracted = extracted.upper()\n            if any(token in upper_extracted for token in metadata_tokens):\n                continue\n            if not (any(keyword in upper_extracted for keyword in keyword_patterns) or any(marker in upper_extracted for marker in strong_requirement_markers)):\n                continue\n\n            kept.append(extracted)\n\n        return \"\\n\".join(kept)\n'''\ntext = text[:start] + new_block + text[end:]\npath.write_text(text)\nPY\npython -m py_compile pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run targeted suite after final filter rewrite",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q > /tmp/final_pdf_tests.log 2>&1; status=$?; echo EXIT:$status; tail -n 80 /tmp/final_pdf_tests.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "debug extract behavior on the raw noisy requirement sample",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nimport re\nfrom pdf_processors import TextLayerPdfProcessor\nraw = \"\"\".: С Че веносауих А Б поберхности ЁЕ опоры поз. 1 0,5 мм на длине 1 м. Допускается пробка. 1 СВарку Выполнить по произбодстбенно-технологической\n6 После сварки контролировать прохождение имитаторов документации предприятия-изготобителя, разработанной с учетом\nКЛАБ.7 16 331.012 В трубах поз. 2, 3. Прохождение должно быть свободным, требований разделоб 2-4, 6-13, 15, 18 ОСТ 5Р.9653-2015:\n- сВарные шбы №1, 4 аргонодугобым способом проволокой\n7 Покрытие, кроме опоры поз. 1 и труб поз. 2, 3: эмаль ПФ-115 (2)\n- сварной шоб № 2 электродом 3ЭА-395/9 ОСТ В5Р.9574-81,\n- сбарные шбы № 5 аргонодуговым способом проболокоц\n2 Контроль качество сбарных соединении быполнить по ХУ!\nкомплексу контроля ОСТ 5Р.9654-2015. Нормы оценки качества по\n3 * Размеры для спрабок.\nВзаимное росположение поза Д трубы поз. 5, лыски Ж опоры поз. 1 ц\nплуты поз. 4& по чертежу.\n5 Допуск перпендекулярности труд поз. 2, 5 относительно\nГ (1:1)\nД й квалиф ЭЦП | Д й квалиф й ЭЦП\ndокумент подписан усиленнои квалифицированнои Сертификат : 032а1960006сае3297464а? а а1а59ееа\nВладелец подписи : Морозова Дарья Валерьевна Действительно с 22.06.2022 до 22.09.2023\nЛист. №докцм. |Подп. |Дата П\n10 Версии: 093 6-1256-6407-0272-1013<#57055е Копировал СВС: 041А2687 Формат АёхЁ\n\"\"\"\nfor idx, line in enumerate(raw.splitlines(), 1):\n    cand = re.sub(r\"\\s+\", \" \", line).strip()\n    if not cand:\n        continue\n    # try regex debug\n    match = re.search(r\"(?P<num>\\d{1,2})\\s*(?:[\\.\\)\\-]|[*•])?\\s*(?P<body>[A-ZА-ЯЁ].+)$\", cand, flags=re.IGNORECASE)\n    print('LINE', idx, '---', cand[:120])\n    print('MATCH', match.group(0) if match else None)\n    print('NOISE', TextLayerPdfProcessor._is_noise_line(cand))\n    print('RESULT', TextLayerPdfProcessor._filter_requirement_lines(cand))\n    print()\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "debug OCR block extraction for sample",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pdf_processors import OCRPdfProcessor\nsample = {\n    'text': ['', '1', 'СВарку', 'Выполнить', 'по', 'произв.', '6', 'После', 'сварки', 'контролировать', '', 'Лист', '№', 'докум.', '', 'Формат', 'A3'],\n    'conf': ['-1', '93', '92', '92', '90', '82', '94', '93', '92', '90', '-1', '0', '0', '0', '-1', '0', '0'],\n    'left': [0, 10, 20, 70, 100, 150, 0, 10, 80, 150, 0, 20, 40, 60, 0, 10, 30],\n    'top': [0, 10, 10, 10, 10, 10, 40, 40, 40, 40, 200, 200, 200, 200, 260, 260, 260],\n    'width': [0, 20, 40, 60, 20, 40, 20, 60, 120, 100, 20, 30, 40, 50, 30, 40, 30],\n    'height': [0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],\n}\nprint(OCRPdfProcessor._extract_requirement_blocks(sample))\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "fix row grouping for OCR and allow requirement-like noisy lines in text filter",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python - <<'PY'\nfrom pathlib import Path\npath = Path('pdf_processors.py')\ntext = path.read_text()\n# OCR grouping by row instead of left bucket to keep the full requirement text on one line.\nold = '''            top = int(str(top_values[idx]) if idx < len(top_values) else \"0\")\n            left = int(str(left_values[idx]) if idx < len(left_values) else \"0\")\n            line_key = (top // 10, left // 50)\n            grouped.setdefault(line_key, []).append((cleaned, conf, top))\n'''\nnew = '''            top = int(str(top_values[idx]) if idx < len(top_values) else \"0\")\n            left = int(str(left_values[idx]) if idx < len(left_values) else \"0\")\n            line_key = (top // 10,)\n            grouped.setdefault(line_key, []).append((cleaned, conf, left, top))\n'''\nif old in text:\n    text = text.replace(old, new)\n    text = text.replace('''        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):\n            line = \" \".join(part for part, _, _ in sorted(entries, key=lambda item: item[2]))\n''', '''        for _, entries in sorted(grouped.items(), key=lambda item: item[0][0]):\n            line = \" \".join(part for part, _, _, _ in sorted(entries, key=lambda item: item[3]))\n''')\n# Add a requirement-like exception so noisy preface lines containing valid numbered requirements are not rejected.\nold_noise = '''        if len(text) < 3:\n            return True\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n'''\nnew_noise = '''        if len(text) < 3:\n            return True\n        requirement_like = bool(re.search(r\"(?<!\\\\w)\\\\d{1,2}\\\\s*(?:[\\\\.\\\\)\\\\-]|[*•])?\\\\s*[A-ZА-ЯЁ]\", text, flags=re.IGNORECASE))\n        if requirement_like and any(token in upper for token in (\"СВАРК\", \"ВЫПОЛНИТЬ\", \"ПОКРЫТИЕ\", \"КОНТРОЛЬ\", \"ДОПУСК\", \"РАЗМЕР\", \"ПРОХОЖДЕНИЕ\", \"ГОСТ\", \"ОСТ\", \"ТУ\", \"МАТЕРИАЛ\")):\n            return False\n        if \"СТЕКЛОТЕКСТОЛИТ\" in upper and \"МАРКИ\" in upper:\n            return True\n'''\nif old_noise in text:\n    text = text.replace(old_noise, new_noise)\npath.write_text(text)\nPY\npython -m py_compile pdf_processors.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "confirm OCR and filter behavior with the exact regression tests",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_pdf_processing.py -q > /tmp/ocr_filter_tests.log 2>&1; status=$?; echo EXIT:$status; tail -n 80 /tmp/ocr_filter_tests.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "run admin app integration checks in the same project",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && python -m pytest tests/test_admin_app.py tests/test_pdf_processing.py -q > /tmp/project_regression.log 2>&1; status=$?; echo EXIT:$status; tail -n 80 /tmp/project_regression.log",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "commit local git changes",
+			"type": "shell",
+			"command": "cd /home/icebook7/rep/teach_tesserasseract && git status --short && git add . && git commit -m \"Fix OCR block extraction and PDF requirement filters\" && echo \"COMMIT_OK\" && git status --short",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
 		}
 	]
 }
