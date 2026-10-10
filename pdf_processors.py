@@ -192,7 +192,10 @@ class OCRPdfProcessor(BasePdfProcessor):
         text = pytesseract.image_to_string(binary, lang="rus", config=custom_config).strip()
         cleaned = self._clean_ocr_text(text)
         if cleaned:
-            self._store_block_text(cleaned, source_name)
+            logger.info(
+                "OCRPdfProcessor: пропускаем запись OCR-результата в TokenStorage для %s; dwg.pdf должен уходить в API без записи в БД.",
+                source_name or 'без имени',
+            )
         return {
             "text": cleaned,
             "blocks": [{"text": cleaned, "source": source_name}],
@@ -424,7 +427,7 @@ class PdfProcessingFactory:
     def _reload_env():
         env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
         if os.path.exists(env_path):
-            load_dotenv(env_path, override=True)
+            load_dotenv(env_path, override=False)
 
     @staticmethod
     def _env_flag(name, default=True):

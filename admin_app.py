@@ -14,7 +14,7 @@ BASE_DIR = FilePath(__file__).resolve().parent
 
 
 def _reload_env():
-    load_dotenv(BASE_DIR / ".env", override=True)
+    load_dotenv(BASE_DIR / ".env", override=False)
 
 
 _reload_env()

@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -61,6 +62,35 @@ class PdfProcessingTests(unittest.TestCase):
             else:
                 env_path.write_text(original)
             load_dotenv(env_path, override=True)
+
+    def test_ocr_processing_does_not_store_dwg_results_in_token_db(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            db_path = os.path.join(tmp_dir, "tokens.db")
+            store = TokenStorage(db_path=db_path)
+            processor = PdfProcessingFactory.create("test.dwg.pdf", token_storage=store)
+            self.assertEqual(processor.__class__.__name__, "OCRPdfProcessor")
+
+            import types
+            import pdf_processors
+
+            pdf_processors.cv2 = types.SimpleNamespace(
+                cvtColor=lambda image, code: image,
+                GaussianBlur=lambda image, kernel, sigma: image,
+                threshold=lambda image, thresh, maxval, flags: (None, image),
+                COLOR_BGR2GRAY=0,
+                THRESH_BINARY=0,
+                THRESH_OTSU=0,
+            )
+            pdf_processors.np = types.SimpleNamespace(array=lambda value: value[0])
+            pdf_processors.pytesseract = types.SimpleNamespace(image_to_string=lambda *args, **kwargs: "Распознанный текст DWG")
+            pdf_processors.convert_from_bytes = lambda pdf_bytes, dpi=300: [b"page-image"]
+
+            result = processor.process(b"dummy-pdf", source_name="test.dwg.pdf")
+
+            self.assertIn("Распознанный текст DWG", result["text"])
+            with sqlite3.connect(db_path) as conn:
+                total = conn.execute("SELECT COUNT(*) FROM unique_tokens").fetchone()[0]
+            self.assertEqual(total, 0)
 
     def test_text_layer_filters_noise(self):
         raw = """Документ подписан усиленной квалифицированной ЭЦП
